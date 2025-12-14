@@ -2,7 +2,8 @@ import { mariadb } from '../config/mariadb.js';
 
 export async function createEmployee(data) {
   const {
-    emp_id, org_id, emp_name, emp_email, emp_role, emp_department,
+    emp_id, org_id, emp_name, emp_email, emp_role, 
+    emp_department,
     emp_phone, emp_status
   } = data;
 
