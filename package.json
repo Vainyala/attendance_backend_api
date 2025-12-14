@@ -4,6 +4,7 @@
   "description": "Attendance App Backend server with MariaDB for Transaction Processing and MongoDB for Audit Logging",
   "main": "index.js",
   "type": "module",
+  
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
