@@ -3,7 +3,7 @@ import {
   getEmployee,
   getEmployeeById,
   updateEmployee,
-  updateEmployeePartial,
+  updateEmployeePartially,
   deleteEmployee
 } from '../models/employeeModel.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
@@ -110,12 +110,12 @@ into this can update one or all field can change
 }
 
 */
-export async function updateEmpPartial(req, res) {
+export async function updateEmpPartially(req, res) {
   const { emp_id } = req.params;
       console.log('error:', emp_id)
 
   try {
-    await updateEmployeePartial(emp_id, req.body);
+    await updateEmployeePartially(emp_id, req.body);
     await auditLog({ action: 'employee_update', actor: { emp_id: req.user?.emp_id }, req, meta: { emp_id } });
     return ok(res, { message: 'Employee updated successfully' });
   } catch (err) {

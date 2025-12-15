@@ -53,7 +53,7 @@ export async function updateEmployee(emp_id, data) {
   return result;
 }
 
-export async function updateEmployeePartial(emp_id, data) {
+export async function updateEmployeePartially(emp_id, data) {
   const {
     org_id = null,
     emp_name = null,

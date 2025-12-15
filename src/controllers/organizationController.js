@@ -21,6 +21,7 @@ POST http://localhost:4000/api/v1/organizations
 
 */
 export async function createOrg(req, res) {
+  console.log("body:", req.body);
   const { org_id, org_name, org_email } = req.body || {};
   if (!org_id) return badRequest(res, 'org_id is required', 'VALIDATION');
 
@@ -29,6 +30,7 @@ export async function createOrg(req, res) {
     await auditLog({ action: 'org_create', actor: { org_id }, req, meta: { org_name, org_email } });
     return ok(res, { message: 'Organization created successfully' });
   } catch (err) {
+    console.log("error:", err);
     await errorLog({ err, req, context: { org_id } });
     return serverError(res);
   }

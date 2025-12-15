@@ -3,6 +3,7 @@ import {
   getProjects,
   getProjectById,
   updateProject,
+  updateProjectPartially,
   deleteProject
 } from '../models/projectModel.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
@@ -22,6 +23,7 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function createProj(req, res) {
+  console.log("body:", req.body);
   const { project_id, project_name } = req.body || {};
   if (!project_id || !project_name) return badRequest(res, 'project_id and project_name are required', 'VALIDATION');
 
@@ -30,6 +32,7 @@ export async function createProj(req, res) {
     await auditLog({ action: 'project_create', actor: { emp_id: req.user?.emp_id }, req, meta: { project_id, project_name } });
     return ok(res, { message: 'Project created successfully' });
   } catch (err) {
+      console.log("error:",err);
     await errorLog({ err, req, context: { project_id } });
     return serverError(res);
   }
@@ -70,6 +73,7 @@ export async function getProj(req, res) {
 /*
 PUT {{base_url}}/api/v1/projects/PRJ001
 Authorization: Bearer {{access_token}}
+here should pass all fields names and into that update can do
 {
   "project_name": "Smart City IoT Dashboard",
   "project_techstack": "Node.js, MongoDB, Grafana"
@@ -83,6 +87,30 @@ export async function updateProj(req, res) {
     await auditLog({ action: 'project_update', actor: { emp_id: req.user?.emp_id }, req, meta: { project_id } });
     return ok(res, { message: 'Project updated successfully' });
   } catch (err) {
+    await errorLog({ err, req, context: { project_id } });
+    return serverError(res);
+  }
+}
+
+/*
+PATCH {{base_url}}/api/v1/projects/PRJ001
+Authorization: Bearer {{access_token}}
+into this can update one or all field can change partially
+{
+  "project_name": "Smart City IoT Dashboard",
+  "project_techstack": "Node.js, MongoDB, Grafana"
+}
+
+*/
+export async function updateProjPartially(req, res) {
+  console.log("body:", req.body);
+  const { project_id } = req.params;
+  try {
+    await updateProjectPartially(project_id, req.body);
+    await auditLog({ action: 'project_update', actor: { emp_id: req.user?.emp_id }, req, meta: { project_id } });
+    return ok(res, { message: 'Project updated successfully' });
+  } catch (err) {
+    console.log("error:", err);
     await errorLog({ err, req, context: { project_id } });
     return serverError(res);
   }
