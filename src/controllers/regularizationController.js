@@ -25,6 +25,20 @@ Authorization: Bearer {{access_token}}
 
 
 */
+
+
+//update att by manager
+// {
+//   "emp_id": "NUTANTEKE20250600002",
+ //    "mgr_emp_id"  : "NUTANTEKM20250600002"
+//   "reg_applied_for_date": "2025-12-05",
+//   "shortfall_hrs": 9.00,
+//   "reg_justification": " ertertfgrdfgfdgdg",
+//   "reg_approval_status": "REJECTED"
+//  "mgr_comments" :"asdsdfsd"
+// }
+
+
 export async function createReg(req, res) {
     console.log('req.body:', req.body);
     const { reg_id, emp_id } = req.body || {};
@@ -40,7 +54,9 @@ export async function createReg(req, res) {
                 reg_id, emp_id
             }
         });
-        return ok(res, { message: 'Employee Regularization created successfully' });
+        return ok(res, { message: 'Employee Regularization created successfully',
+            data: { reg_id }
+        });
     } catch (err) {
         console.log('error:', err);
         await errorLog({ err, req, context: { reg_id } });

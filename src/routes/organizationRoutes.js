@@ -1,6 +1,7 @@
 import express from 'express';
 import { createOrg, listOrgs, getOrg, updateOrg, deleteOrg } from '../controllers/organizationController.js';
 
+
 const router = express.Router();
 
 router.post('/', createOrg);

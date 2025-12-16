@@ -22,13 +22,16 @@ Authorization: Bearer {{access_token}}
 */
 export async function createShift(req, res) {
   console.log('req.body:', req.body);
-  const { shift_id, shift_name } = req.body || {};
-  if (!shift_id || !shift_name) return badRequest(res, 'shift_id and shift_name are required', 'VALIDATION');
+  const { shift_id, emp_id } = req.body || {};
+  if (!shift_id || !emp_id) return badRequest(res, 'shift_id and emp_id are required', 'VALIDATION');
 
   try {
     await createShiftMaster(req.body);
-    await auditLog({ action: 'shift_create', actor: { shift_id: req.user?.shift_id }, req, meta: { shift_id, shift_name } });
-    return ok(res, { message: 'Shift created successfully' });
+    await auditLog({ action: 'shift_create', actor: { shift_id: req.user?.shift_id },
+       req, meta: { shift_id, emp_id } });
+    return ok(res, { message: 'Shift created successfully',
+      data: { shift_id }
+     });
   } catch (err) {
     console.log('error:', err);
     await errorLog({ err, req, context: { shift_id } });
