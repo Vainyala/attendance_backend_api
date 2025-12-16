@@ -1,18 +1,38 @@
 import { mariadb } from '../config/mariadb.js';
 
+// export async function createRegularization(data) {
+//   const {
+//    reg_id, emp_id, mgr_id, reg_applied_for_date, reg_justification, reg_approval_status, 
+//     shortfall_hrs,mgr_comments
+//   } = data;
+
+//   const [result] = await mariadb.execute(
+//     `INSERT INTO employee_regularization (
+//     reg_id,  emp_id, mgr_id, reg_applied_for_date, reg_justification,reg_approval_status,
+//      shortfall_hrs,mgr_comments
+//     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+//     [
+//      reg_id, emp_id, mgr_id, reg_applied_for_date, reg_justification, reg_approval_status, 
+//     shortfall_hrs, mgr_comments
+//     ]
+//   );
+//   return result;
+// }
+
+
 export async function createRegularization(data) {
   const {
-   reg_id, emp_id,  reg_applied_for_date, reg_justification, reg_approval_status, 
+   reg_id, emp_id, reg_applied_for_date, reg_justification,
     shortfall_hrs
   } = data;
 
   const [result] = await mariadb.execute(
     `INSERT INTO employee_regularization (
-    reg_id,  emp_id,  reg_applied_for_date, reg_justification,reg_approval_status,
+    reg_id,  emp_id,  reg_applied_for_date, reg_justification,
      shortfall_hrs
-    ) VALUES (?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?)`,
     [
-     reg_id, emp_id,  reg_applied_for_date, reg_justification, reg_approval_status, 
+     reg_id, emp_id,  reg_applied_for_date, reg_justification,
     shortfall_hrs
     ]
   );
@@ -35,6 +55,7 @@ export async function getRegularizationById(reg_id) {
 export async function updateRegularization(reg_id, data) {
  const {
     emp_id = null,
+    
     reg_applied_for_date = null,
     reg_justification = null,
     reg_approval_status = null,

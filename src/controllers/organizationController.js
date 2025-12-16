@@ -108,6 +108,7 @@ export async function deleteOrg(req, res) {
     await auditLog({ action: 'org_delete', actor: { org_id }, req });
     return ok(res, { message: 'Organization deleted successfully' });
   } catch (err) {
+    console.log('error:', err)
     await errorLog({ err, req, context: { org_id } });
     return serverError(res);
   }

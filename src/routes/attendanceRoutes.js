@@ -3,10 +3,11 @@ import { jwtAuth } from '../middleware/jwtAuth.js';
 import { createAtt, listAtt, getAtt, 
     // updateAtt, updateAttPartially, deleteAtt 
 } from '../controllers/attendanceController.js';
+import { autoGenerateId } from '../middleware/autoId.js'; // NEW IMPORT
 
 const router = express.Router();
 
-router.post('/',  createAtt);
+router.post('/', autoGenerateId('att'), createAtt);
 router.get('/',  listAtt);
 router.get('/:att_id',  getAtt);
 // router.put('/:att_id',  updateAtt);

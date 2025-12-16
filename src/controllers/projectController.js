@@ -24,15 +24,21 @@ Authorization: Bearer {{access_token}}
 */
 export async function createProj(req, res) {
   console.log("body:", req.body);
-  const { project_id, project_name } = req.body || {};
-  if (!project_id || !project_name) return badRequest(res, 'project_id and project_name are required', 'VALIDATION');
-
+  const { project_id, emp_id } = req.body || {};
+  if (!project_id || !emp_id) return badRequest(res, 'project_id and emp_id are required',
+    'VALIDATION');
   try {
     await createProject(req.body);
-    await auditLog({ action: 'project_create', actor: { emp_id: req.user?.emp_id }, req, meta: { project_id, project_name } });
-    return ok(res, { message: 'Project created successfully' });
+    await auditLog({
+      action: 'project_create', actor: { project_id: req.user?.project_id },
+      req, meta: { project_id, emp_id }
+    });
+    return ok(res, {
+      message: 'Project created successfully',
+      data: { project_id }
+    });
   } catch (err) {
-      console.log("error:",err);
+    console.log("error:", err);
     await errorLog({ err, req, context: { project_id } });
     return serverError(res);
   }
