@@ -10,6 +10,9 @@ import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
 import { errorLog } from '../audit/errorLogger.js';
 
+import { mariadb } from '../config/mariadb.js';
+import SerialNumberGenerator from '../utils/serialGenerator.js';
+
 /*
 POST {{base_url}}/api/v1/projects
 Authorization: Bearer {{access_token}}
@@ -23,24 +26,72 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function createProj(req, res) {
+  const connection = await mariadb.getConnection();
   console.log("body:", req.body);
-  const { project_id, emp_id } = req.body || {};
-  if (!project_id || !emp_id) return badRequest(res, 'project_id and emp_id are required',
-    'VALIDATION');
+
   try {
-    await createProject(req.body);
-    await auditLog({
-      action: 'project_create', actor: { project_id: req.user?.project_id },
-      req, meta: { project_id, emp_id }
+    await connection.beginTransaction();
+
+    const {
+      org_short_name, project_name, project_site,
+      client_name, client_location,
+      client_contact, project_site_lat,
+      project_site_long, mng_name, mng_email,
+      mng_contact, project_description,
+      project_techstack, project_assigned_date
+    } = req.body;
+
+    if (!project_name) {
+      await connection.rollback();
+      return badRequest(res, 'project_name is required');
+    }
+
+    if (!org_short_name) {
+      await connection.rollback();
+      return badRequest(res, 'org_short_name is required');
+    }
+    // ⭐ Generate project_id INSIDE SAME TRANSACTION
+    const project_id = await SerialNumberGenerator.generateSerialNumber(
+      org_short_name,
+      'project',
+      connection // 👈 IMPORTANT
+    );
+
+    await createProject(connection, {
+      project_id, org_short_name, project_name,
+      project_site, client_name, client_location,
+      client_contact, project_site_lat, project_site_long,
+      mng_name, mng_email, mng_contact,
+      project_description, project_techstack, project_assigned_date
     });
+
+    await auditLog({
+      action: 'project_create', actor: {
+        project_id: req.user?.project_id
+      },
+      req, meta: {
+        project_id, org_short_name
+      }
+    });
+    // ✅ commit ONLY after everything success
+    await connection.commit();
+
     return ok(res, {
       message: 'Project created successfully',
       data: { project_id }
     });
   } catch (err) {
     console.log("error:", err);
-    await errorLog({ err, req, context: { project_id } });
+    await connection.rollback();
+    await errorLog({
+      err, req, context: {
+        project_id
+      }
+    });
     return serverError(res);
+  }
+  finally {
+    connection.release();
   }
 }
 
@@ -90,7 +141,7 @@ export async function updateProj(req, res) {
   const { project_id } = req.params;
   try {
     await updateProject(project_id, req.body);
-    await auditLog({ action: 'project_update', actor: { emp_id: req.user?.emp_id }, req, meta: { project_id } });
+    await auditLog({ action: 'project_update', actor: { org_short_name: req.user?.org_short_name }, req, meta: { project_id } });
     return ok(res, { message: 'Project updated successfully' });
   } catch (err) {
     await errorLog({ err, req, context: { project_id } });
@@ -113,7 +164,7 @@ export async function updateProjPartially(req, res) {
   const { project_id } = req.params;
   try {
     await updateProjectPartially(project_id, req.body);
-    await auditLog({ action: 'project_update', actor: { emp_id: req.user?.emp_id }, req, meta: { project_id } });
+    await auditLog({ action: 'project_update', actor: { org_short_name: req.user?.org_short_name }, req, meta: { project_id } });
     return ok(res, { message: 'Project updated successfully' });
   } catch (err) {
     console.log("error:", err);
@@ -131,7 +182,7 @@ export async function deleteProj(req, res) {
   const { project_id } = req.params;
   try {
     await deleteProject(project_id);
-    await auditLog({ action: 'project_delete', actor: { emp_id: req.user?.emp_id }, req, meta: { project_id } });
+    await auditLog({ action: 'project_delete', actor: { org_short_name: req.user?.org_short_name }, req, meta: { project_id } });
     return ok(res, { message: 'Project deleted successfully' });
   } catch (err) {
     await errorLog({ err, req, context: { project_id } });

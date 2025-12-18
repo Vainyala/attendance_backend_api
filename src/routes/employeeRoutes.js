@@ -13,8 +13,7 @@ import {
 const router = express.Router();
 
 // Add autoGenerateId middleware BEFORE createEmp
-router.post('/', autoGenerateId('emp'), createEmp);
-
+router.post('/', createEmp);
 router.get('/', listEmp);
 router.get('/:emp_id', getEmp);
 router.put('/:emp_id', updateEmp);

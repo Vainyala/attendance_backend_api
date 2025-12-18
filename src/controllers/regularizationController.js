@@ -10,6 +10,8 @@ import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
 import { errorLog } from '../audit/errorLogger.js';
 
+import { mariadb } from '../config/mariadb.js';
+import SerialNumberGenerator from '../utils/serialGenerator.js';
 /*
 POST {{base_url}}/api/v1/regularization
 Authorization: Bearer {{access_token}}
@@ -40,28 +42,56 @@ Authorization: Bearer {{access_token}}
 
 
 export async function createReg(req, res) {
+    const connection = await mariadb.getConnection();
     console.log('req.body:', req.body);
-    const { reg_id, emp_id } = req.body || {};
-    if (!reg_id || !emp_id) return badRequest(res, 'reg_id and emp_id are required', 'VALIDATION');
-
+  
     try {
-        await createRegularization(req.body);
+    await connection.beginTransaction();
+          const {
+            org_short_name, reg_applied_for_date,
+              reg_justification,shortfall_hrs
+             } = req.body;
+     if (!org_short_name) {
+      await connection.rollback();
+      return badRequest(res, 'org_short_name is required');
+    }
+
+     // ⭐ Generate reg_id INSIDE SAME TRANSACTION
+    const reg_id = await SerialNumberGenerator.generateSerialNumber(
+      org_short_name,
+      'reg',
+      connection // 👈 IMPORTANT
+    );
+
+
+         // ⭐ Call MODEL function (clean)
+    await createRegularization(connection, {
+       reg_id, org_short_name, reg_applied_for_date, reg_justification,
+    shortfall_hrs
+    });
         await auditLog({
             action: 'employee_regularization_create', actor: {
                 reg_id: req.user?.reg_id
             },
             req, meta: {
-                reg_id, emp_id
+                reg_id, org_short_name
             }
         });
+ // ✅ commit ONLY after everything success
+    await connection.commit();
+
         return ok(res, { message: 'Employee Regularization created successfully',
             data: { reg_id }
         });
     } catch (err) {
         console.log('error:', err);
+        await connection.rollback();
         await errorLog({ err, req, context: { reg_id } });
         return serverError(res);
     }
+    finally {
+    connection.release();
+  }
 }
 
 /*

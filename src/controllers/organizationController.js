@@ -8,13 +8,14 @@ import {
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
 import { errorLog } from '../audit/errorLogger.js';
+import SerialNumberGenerator from '../utils/serialGenerator.js';
 
 /*
-Create an Organization
+Create an Organization - org_id is AUTO-GENERATED
 
 POST http://localhost:4000/api/v1/organizations
 {
-  "org_id": "ORG001",
+  "org_short_name": "NUTANTEK",
   "org_name": "NutanTek Solutions LLP",
   "org_email": "info@nutantek.com"
 }
@@ -22,24 +23,65 @@ POST http://localhost:4000/api/v1/organizations
 */
 export async function createOrg(req, res) {
   console.log("body:", req.body);
-  const { org_id, org_name, org_email } = req.body || {};
-  if (!org_id) return badRequest(res, 'org_id is required', 'VALIDATION');
+  const { org_name, org_short_name, org_email } = req.body || {};
+
+  // Validate required fields (org_id is NO LONGER required from user)
+  if (!org_short_name || !org_name || !org_email) {
+    return badRequest(res, 'org_short_name, org_name, and org_email are required', 'VALIDATION');
+  }
+
+  // Validate org_short_name length
+  if (org_short_name.length > 10) {
+    return badRequest(res, 'org_short_name must be maximum 10 characters', 'VALIDATION');
+  }
 
   try {
-    await createOrganization({ org_id, org_name, org_email });
-    await auditLog({ action: 'org_create', actor: { org_id }, req, meta: { org_name, org_email } });
-    return ok(res, { message: 'Organization created successfully' });
+    // ⭐ Auto-generate org_id (ORG1, ORG2, ORG3...)
+    const org_id = await SerialNumberGenerator.generateOrgId();
+
+    // Convert org_short_name to uppercase for consistency
+    const normalizedShortName = org_short_name.toUpperCase();
+
+    // Create organization with auto-generated org_id
+    await createOrganization({
+      org_id,
+      org_name,
+      org_short_name: normalizedShortName,
+      org_email
+    });
+
+    await auditLog({
+      action: 'org_create',
+      actor: { org_id },
+      req,
+      meta: {
+        org_name,
+        org_short_name: normalizedShortName,
+        org_email
+      }
+    });
+
+    return ok(res, {
+      message: 'Organization created successfully',
+      data: {
+        org_id
+      }
+    });
   } catch (err) {
     console.log("error:", err);
-    await errorLog({ err, req, context: { org_id } });
+    
+    // Check for duplicate org_short_name error
+    if (err.code === 'ER_DUP_ENTRY') {
+      return badRequest(res, 'Organization with this short name already exists', 'DUPLICATE');
+    }
+    
+    await errorLog({ err, req, context: { org_short_name, org_name } });
     return serverError(res);
   }
 }
 
-
 // List Organizations
-// GET http://localhost:4000/api/v1/organizations
-
+// GET http://localhost:4000/api/v1/organizations/list
 export async function listOrgs(req, res) {
   try {
     const orgs = await getOrganizations();
@@ -50,15 +92,13 @@ export async function listOrgs(req, res) {
   }
 }
 
-
 // Get an Organization by org_id
-// GET http://localhost:4000/api/v1/organizations/NUTANTEK
-
+// GET http://localhost:4000/api/v1/organizations/ORG1
 export async function getOrg(req, res) {
   const { org_id } = req.params;
   if (!org_id) {
-  return badRequest(res, 'org_id is required');
-}
+    return badRequest(res, 'org_id is required');
+  }
 
   try {
     const org = await getOrganizationById(org_id);
@@ -70,45 +110,74 @@ export async function getOrg(req, res) {
   }
 }
 
-
 /*  Update an Organization
-  PUT http://localhost:4000/api/v1/organizations/ORG001
+  PUT http://localhost:4000/api/v1/organizations/ORG1
 {
   "org_name": "NutanTek Solutions",
+  "org_short_name": "NUTANTEK",
   "org_email": "contact@nutantek.com"
 }
 */
 export async function updateOrg(req, res) {
   const { org_id } = req.params;
-   if (!org_id) {
-        return badRequest(res, 'org_id is required');
-    }
-  const { org_name, org_email } = req.body || {};
+  if (!org_id) {
+    return badRequest(res, 'org_id is required');
+  }
+
+  const { org_name, org_short_name, org_email } = req.body || {};
+
+  // Validate org_short_name if provided
+  if (org_short_name && org_short_name.length > 10) {
+    return badRequest(res, 'org_short_name must be maximum 10 characters', 'VALIDATION');
+  }
+
   try {
-    await updateOrganization(org_id, { org_name, org_email });
-    await auditLog({ action: 'org_update', actor: { org_id }, req, meta: { org_name, org_email } });
+    // Normalize org_short_name to uppercase if provided
+    const normalizedShortName = org_short_name ? org_short_name.toUpperCase() : undefined;
+
+    await updateOrganization(org_id, {
+      org_name,
+      org_short_name: normalizedShortName,
+      org_email
+    });
+
+    await auditLog({
+      action: 'org_update',
+      actor: { org_id },
+      req,
+      meta: {
+        org_name,
+        org_short_name: normalizedShortName,
+        org_email
+      }
+    });
+
     return ok(res, { message: 'Organization updated successfully' });
   } catch (err) {
+    // Check for duplicate org_short_name error
+    if (err.code === 'ER_DUP_ENTRY') {
+      return badRequest(res, 'Organization with this short name already exists', 'DUPLICATE');
+    }
+
     await errorLog({ err, req, context: { org_id } });
     return serverError(res);
   }
 }
 
-
 // Delete any Organization
-// DELETE http://localhost:4000/api/v1/organizations/ORG001
-
+// DELETE http://localhost:4000/api/v1/organizations/ORG1
 export async function deleteOrg(req, res) {
   const { org_id } = req.params;
-   if (!org_id) {
-        return badRequest(res, 'org_id is required');
-    }
+  if (!org_id) {
+    return badRequest(res, 'org_id is required');
+  }
+
   try {
     await deleteOrganization(org_id);
     await auditLog({ action: 'org_delete', actor: { org_id }, req });
     return ok(res, { message: 'Organization deleted successfully' });
   } catch (err) {
-    console.log('error:', err)
+    console.log('error:', err);
     await errorLog({ err, req, context: { org_id } });
     return serverError(res);
   }

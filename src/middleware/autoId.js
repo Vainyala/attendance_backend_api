@@ -1,40 +1,45 @@
 import SerialNumberGenerator from '../utils/serialGenerator.js';
-import { getOrgIdFromEmp } from '../utils/getOrgFromEmp.js';
+import { getOrgShortNameFromEmp } from '../utils/getOrgShortNameFromEmp.js';
 
 export function autoGenerateId(dataType) {
-    return async (req, res, next) => {
-        try {
-            // Get org_id from different sources
-            let org_id = req.body.org_id || req.user?.org_id;
+  return async (req, res, next) => {
+    try {
+      // Get org_short_name from different sources
+      let org_short_name = req.body.org_short_name || req.user?.org_short_name;
 
-            // ⭐ If org_id NOT provided, derive from emp_id
-            if (!org_id && req.body.emp_id) {
-                org_id = await getOrgIdFromEmp(req.body.emp_id);
-                req.body.org_id = org_id; // attach for later use
-            }
+      const connection = await mariadb.getConnection();
+      try {
+        org_short_name = await getOrgShortNameFromEmp(connection, req.body.emp_id);
+      } finally {
+        connection.release();
+      }
 
-            if (!org_id) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'org_id could not be resolved'
-                });
-            }
 
-            // Generate the ID
-            const generatedId = await SerialNumberGenerator.generateSerialNumber(org_id, dataType);
-            
-            // Attach generated ID to request body
-            req.body[`${dataType}_id`] = generatedId;
+      if (!org_short_name) {
+        return res.status(400).json({
+          success: false,
+          message: 'org_short_name could not be resolved'
+        });
+      }
 
-            console.log(`Generated ${dataType}_id:`, generatedId);
-            next();
-        } catch (error) {
-            console.error('Error generating ID:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to generate ID',
-                error: error.message
-            });
-        }
-    };
+      // Generate the ID (will only increment if entire request succeeds)
+      const generatedId = await SerialNumberGenerator.generateSerialNumber(
+        org_short_name,
+        dataType
+      );
+
+      // Attach generated ID to request body
+      req.body[`${dataType}_id`] = generatedId;
+
+      console.log(`Generated ${dataType}_id:`, generatedId);
+      next();
+    } catch (error) {
+      console.error('Error generating ID:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate ID',
+        error: error.message
+      });
+    }
+  };
 }

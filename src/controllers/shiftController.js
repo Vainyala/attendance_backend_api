@@ -9,6 +9,8 @@ import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
 import { errorLog } from '../audit/errorLogger.js';
 
+import { mariadb } from '../config/mariadb.js';
+import SerialNumberGenerator from '../utils/serialGenerator.js';
 /*
 POST {{base_url}}/api/v1/shift
 Authorization: Bearer {{access_token}}
@@ -21,21 +23,64 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function createShift(req, res) {
+  const connection = await mariadb.getConnection();
+
   console.log('req.body:', req.body);
-  const { shift_id, emp_id } = req.body || {};
-  if (!shift_id || !emp_id) return badRequest(res, 'shift_id and emp_id are required', 'VALIDATION');
 
   try {
-    await createShiftMaster(req.body);
-    await auditLog({ action: 'shift_create', actor: { shift_id: req.user?.shift_id },
-       req, meta: { shift_id, emp_id } });
-    return ok(res, { message: 'Shift created successfully',
+    await connection.beginTransaction();
+    const {
+      org_short_name,
+      shift_name, shift_start_time,
+      shift_end_time
+    } = req.body;
+
+    // ✅ validations
+    if (!shift_name) {
+      await connection.rollback();
+      return badRequest(res, 'shift_name is required');
+    }
+
+    if (!org_short_name) {
+      await connection.rollback();
+      return badRequest(res, 'org_short_name is required');
+    }
+
+    // ⭐ Generate shift_id INSIDE SAME TRANSACTION
+    const shift_id = await SerialNumberGenerator.generateSerialNumber(
+      org_short_name,
+      'shift',
+      connection // 👈 IMPORTANT
+    );
+
+    // ⭐ Call MODEL function (clean)
+    await createShiftMaster(connection, {
+      shift_id, org_short_name,
+      shift_name, shift_start_time,
+      shift_end_time
+    });
+
+    await auditLog({
+      action: 'shift_create', actor: { shift_id: req.user?.shift_id },
+      req, meta: { shift_id, org_short_name }
+    });
+
+    // ✅ commit ONLY after everything success
+    await connection.commit();
+
+    return ok(res, {
+      message: 'Shift created successfully',
       data: { shift_id }
-     });
+    });
+
   } catch (err) {
     console.log('error:', err);
+    await connection.rollback();
     await errorLog({ err, req, context: { shift_id } });
     return serverError(res);
+  }
+  finally {
+    connection.release();
   }
 }
 
@@ -84,7 +129,7 @@ Authorization: Bearer {{access_token}}
 */
 export async function updateShift(req, res) {
   const { shift_id } = req.params;
-      console.log('error:', shift_id)
+  console.log('error:', shift_id)
 
   try {
     await updateShiftMaster(shift_id, req.body);

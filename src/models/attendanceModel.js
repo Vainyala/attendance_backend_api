@@ -1,13 +1,13 @@
 import { mariadb } from '../config/mariadb.js';
 
-export async function createAttendance(data) {
+export async function createAttendance(connection, data) {
   const {
     att_id, emp_id,  att_latitude, att_longitude,
     att_geofence_name, project_id, att_notes, att_status, verification_type,
     is_verified
   } = data;
 
-  const [result] = await mariadb.execute(
+  const [result] = await connection.query(
     `INSERT INTO employee_attendance (
       att_id, emp_id, att_latitude, att_longitude,
     att_geofence_name, project_id, att_notes, att_status, verification_type,
@@ -35,60 +35,28 @@ export async function getAttendanceById(att_id) {
   return rows[0] || null;
 }
 
-// export async function updateAttendance(att_id, data) {
-//   const {
-//     emp_id = null,  att_latitude = null,  att_longitude = null,
-//     att_geofence_name = null, project_id = null, att_notes = null, att_status = null,
-//      verification_type = null ,is_verified = null
-//   } = data;
+export async function getAttendanceByEmpId(emp_id) {
+  const [rows] = await mariadb.execute(
+    'SELECT * FROM employee_attendance WHERE emp_id = ? LIMIT 1',
+    [emp_id]
+  );
+  return rows[0] || null;
+}
 
-//   const [result] = await mariadb.execute(
-//     `UPDATE employee_attendance SET
-//       emp_id = ?,  att_latitude = ?, att_longitude = ?,
-//       att_geofence_name = ?, project_id = ?, att_notes = ?, att_status = ?,
-//       verification_type = ?, is_verified = ?, updated_at = NOW()
-//     WHERE att_id = ?`,
-//     [
-//       emp_id, att_latitude, att_longitude,
-//     att_geofence_name, project_id, att_notes, att_status, verification_type,
-//     is_verified,
-//       att_id
-//     ]
-//   );
-//   return result;
-// }
+export async function getAttendanceByDateRange(from_date, to_date) {
+  const [rows] = await mariadb.execute(
+    `
+    SELECT *
+    FROM employee_attendance
+    WHERE created_at BETWEEN ? AND ?
+    ORDER BY created_at ASC
+    `,
+    [
+      `${from_date} 00:00:00`,
+      `${to_date} 23:59:59`
+    ]
+  );
 
-// export async function updateAttendancePartially(att_id, data) {
-//   const {
-//     emp_id = null,  att_latitude = null,  att_longitude = null,
-//     att_geofence_name = null, project_id = null, att_notes = null, att_status = null,
-//      verification_type = null ,is_verified = null
-//   } = data;
+  return rows;
+}
 
-//   const [result] = await mariadb.execute(
-//     `UPDATE employee_attendance SET
-//       emp_id = COALESCE(?, emp_id),  
-//       att_latitude = COALESCE(?, att_latitude), att_longitude = COALESCE(?, att_longitude),
-//       att_geofence_name = COALESCE(?, att_geofence_name), project_id = COALESCE(?, project_id), 
-//       att_notes = COALESCE(?, att_notes), att_status = COALESCE(?, att_status),
-//       verification_type = COALESCE(?, verification_type), 
-//       is_verified = COALESCE(?, is_verified), updated_at = NOW()
-//     WHERE att_id = ?`,
-//     [
-//       emp_id, att_latitude, att_longitude,
-//     att_geofence_name, project_id, att_notes, att_status, verification_type,
-//     is_verified,
-//       att_id
-//     ]
-//   );
-//   return result;
-// }
-
-
-// export async function deleteAttendance(att_id) {
-//   const [result] = await mariadb.execute(
-//     'DELETE FROM employee_attendance WHERE att_id = ?',
-//     [att_id]
-//   );
-//   return result;
-// }
