@@ -86,17 +86,7 @@ class SerialNumberGenerator {
       );
     }
 
-    // ⭐ IMPORTANT: Commit only happens AFTER the entire request succeeds
-    // The calling code should handle transaction commit/rollback based on business logic success
-    //await connection.commit();
-
     return serialNumber;
-    // } catch (err) {
-    //   //await connection.rollback();
-    //   throw err;
-    // } finally {
-    //   connection.release();
-    // }
   }
 
   /**

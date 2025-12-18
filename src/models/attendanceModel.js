@@ -60,3 +60,22 @@ export async function getAttendanceByDateRange(from_date, to_date) {
   return rows;
 }
 
+export async function getAttendanceWithSiteById(att_id) {
+  const [rows] = await mariadb.execute(
+    `
+    SELECT 
+      ea.*,
+      psm.project_site_name,
+      psm.project_site_lat,
+      psm.project_site_long
+    FROM employee_attendance ea
+    LEFT JOIN project_site_mapping psm
+      ON ea.project_id = psm.project_id
+    WHERE ea.att_id = ?
+    LIMIT 1
+    `,
+    [att_id]
+  );
+
+  return rows[0] || null;
+}

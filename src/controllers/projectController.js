@@ -1,7 +1,8 @@
 import {
   createProject,
   getProjects,
-  getProjectById,
+ // getProjectById,
+ getProjectWithSiteById,
   updateProject,
   updateProjectPartially,
   deleteProject
@@ -115,13 +116,57 @@ GET {{base_url}}/api/v1/projects/PRJ001
 Authorization: Bearer {{access_token}}
 
 */
+
+// export async function getProj(req, res) {
+//   const { project_id } = req.params;
+//   try {
+//     const project = await getProjectById(project_id);
+//     if (!project) return notFound(res, 'Project not found');
+//     return ok(res, project);
+//   } catch (err) {
+//     await errorLog({ err, req, context: { project_id } });
+//     return serverError(res);
+//   }
+// }
+
+
 export async function getProj(req, res) {
+   console.log("body:", req.body);
   const { project_id } = req.params;
+
   try {
-    const project = await getProjectById(project_id);
-    if (!project) return notFound(res, 'Project not found');
-    return ok(res, project);
+    const row = await getProjectWithSiteById(project_id);
+
+    if (!row) {
+      return notFound(res, 'Employee Project not found');
+    }
+
+    // 🔹 reshape response
+    const response = {
+      project_id: row.project_id,
+      project_name: row.project_name,
+      project_site: {
+        project_site_name: row.project_site_name,
+        project_site_lat: row.project_site_lat,
+        project_site_long: row.project_site_long
+      },
+      project_techstack: row.project_techstack,
+      project_assigned_date: row.project_assigned_date,
+      project_description: row.project_description,
+      client_contact: row.client_contact,
+      client_name: row.client_name,
+      client_location: row.client_location,
+      mng_name: row.mng_name,
+      mng_email: row.mng_email,
+      mng_contact: row.mng_contact,
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    };
+
+    return ok(res, response);
+
   } catch (err) {
+     console.log("error:", err);
     await errorLog({ err, req, context: { project_id } });
     return serverError(res);
   }
