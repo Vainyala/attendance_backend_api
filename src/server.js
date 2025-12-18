@@ -17,6 +17,7 @@ import organizationRoutes from './routes/organizationRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js'
 import shiftRoutes from './routes/shiftRoutes.js'
+import projectSiteRoutes from './routes/projectSiteRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js'
 import healthRoutes from './routes/healthRoutes.js';
 import regularizationRoutes from './routes/regularizationRoutes.js'
@@ -40,6 +41,7 @@ app.use('/api/v1/employee', employeeRoutes);
 app.use('/api/v1/shift', shiftRoutes);
 app.use('/api/v1/attendance',attendanceRoutes);
 app.use('/api/v1/regularization', regularizationRoutes);
+app.use('/api/v1/projects_site', projectSiteRoutes);
 
 // Health
 app.get('/health', (_req, res) => res.status(200).json({ ok: true, env: env.nodeEnv }));

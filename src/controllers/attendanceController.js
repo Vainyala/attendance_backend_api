@@ -1,9 +1,7 @@
 import {
-  createAttendance,
-  getAttendance,
-  getAttendanceById,
-  getAttendanceByEmpId,
-  getAttendanceByDateRange
+  createAttendance, getAttendance, //getAttendanceById,
+  getAttendanceWithSiteById,
+  getAttendanceByEmpId, getAttendanceByDateRange
 } from '../models/attendanceModel.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
@@ -90,8 +88,8 @@ export async function createAtt(req, res) {
 /*
 GET {{base_url}}/api/v1/attendance
 Authorization: Bearer {{access_token}}
-
 */
+//get att by date range
 export async function listAtt(req, res) {
   const { from_date, to_date } = req.query;
 
@@ -126,22 +124,64 @@ GET {{base_url}}/api/v1/attendance/EMP001
 Authorization: Bearer {{access_token}}
 
 */
+
+// export async function getAtt(req, res) {
+//   const { att_id } = req.params;
+//   try {
+//       // fetch the project_site_lat and project_site_long, and project_site_name 
+//       // from project_site_mapping table using  project_id and project_site_id
+//     const att = await getAttendanceById(att_id);
+//     if (!att) return notFound(res, 'Employee attendance not found');
+//     return ok(res, att);
+//   } catch (err) {
+//     await errorLog({ err, req, context: { att_id } });
+//     return serverError(res);
+//   }
+// }
+
+
 export async function getAtt(req, res) {
   const { att_id } = req.params;
+
   try {
-    // fetch the latlong from project_master using the project_id
-    //fetch the project_site_name from project_site_mapping using
-    //  project_id and project_site_id
-    const att = await getAttendanceById(att_id);
-    if (!att) return notFound(res, 'Employee attendance not found');
-    return ok(res, att);
+    const row = await getAttendanceWithSiteById(att_id);
+
+    if (!row) {
+      return notFound(res, 'Employee attendance not found');
+    }
+
+    // 🔹 reshape response
+    const response = {
+      att_id: row.att_id,
+      emp_id: row.emp_id,
+      att_timestamp: row.att_timestamp,
+      att_latitude: row.att_latitude,
+      att_longitude: row.att_longitude,
+      att_geofence_name: row.att_geofence_name,
+      project_id: row.project_id,
+
+      project_site: {
+        project_site_name: row.project_site_name,
+        project_site_lat: row.project_site_lat,
+        project_site_long: row.project_site_long
+      },
+
+      att_notes: row.att_notes,
+      att_status: row.att_status,
+      verification_type: row.verification_type,
+      is_verified: row.is_verified,
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    };
+
+    return ok(res, response);
+
   } catch (err) {
     await errorLog({ err, req, context: { att_id } });
     return serverError(res);
   }
 }
 
-//get att by date range
 
 
 // get attendance by emp_id
@@ -162,27 +202,3 @@ export async function getAttByEmpId(req, res) {
     return serverError(res);
   }
 }
-
-// export async function getAttByDateRange(req, res) {
-//   const { from_date, to_date } = req.query;
-
-//   // ✅ validation
-//   if (!from_date || !to_date) {
-//     return badRequest(res, 'from_date and to_date are required');
-//   }
-
-//   try {
-//     const data = await getAttendanceByDateRange(from_date, to_date);
-
-//     return ok(res, {
-//       from_date,
-//       to_date,
-//       count: data.length,
-//       data
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     await errorLog({ err, req });
-//     return serverError(res);
-//   }
-// }
