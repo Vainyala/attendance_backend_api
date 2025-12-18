@@ -1,0 +1,23 @@
+import { mariadb } from '../config/mariadb.js';
+
+/**
+ * Get org_short_name from emp_id
+ * Extracts org_short_name from employee record
+ */
+
+export async function getOrgShortNameFromEmp(connection, emp_id) {
+  if (!emp_id || typeof emp_id !== 'string') {
+    throw new Error('Invalid emp_id');
+  }
+
+  const [rows] = await connection.query(
+    `SELECT org_short_name FROM employee_master WHERE emp_id = ?`,
+    [emp_id]
+  );
+
+  if (rows.length === 0) {
+    throw new Error(`Employee not found with emp_id: ${emp_id}`);
+  }
+
+  return rows[0].org_short_name;
+}
