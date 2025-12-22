@@ -1,25 +1,5 @@
 import { mariadb } from '../config/mariadb.js';
 
-// export async function createEmployee(data) {
-//   const {
-//     emp_id, org_short_name, emp_name, emp_email, emp_role, 
-//     emp_department,
-//     emp_phone, emp_status
-//   } = data;
-
-//   const [result] = await mariadb.execute(
-//     `INSERT INTO employee_master (
-//       emp_id, org_short_name, emp_name, emp_email, emp_role, emp_department,
-//       emp_phone, emp_status
-//     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-//     [
-//       emp_id, org_short_name, emp_name, emp_email, emp_role, emp_department,
-//       emp_phone, emp_status
-//     ]
-//   );
-//   return result;
-// }
-
 export async function createEmployee(connection, data) {
   const {
     emp_id, org_short_name, emp_name, emp_email,

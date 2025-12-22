@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.post('/',  createAtt);
 router.get('/',  listAtt);
-router.get('/:att_id',  getAtt);
 router.get('/:emp_id',  getAttByEmpId);
-
+router.get('/:att_id',  getAtt);
 export default router;
