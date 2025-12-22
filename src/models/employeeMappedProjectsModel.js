@@ -1,0 +1,53 @@
+import { mariadb } from '../config/mariadb.js';
+
+/**
+ * Insert mapping
+ */
+export async function createEmpMappedProjModel(data) {
+  const { emp_id, project_id, mapping_status } = data;
+
+  if (!emp_id || !project_id) {
+    throw new Error('emp_id or project_id missing');
+  }
+
+  const [result] = await mariadb.execute(
+    `
+    INSERT INTO employee_mapped_projects
+    (emp_id, project_id, mapping_status)
+    VALUES (?, ?, ?)`,
+    [emp_id, project_id, mapping_status]
+  );
+  return result;
+}
+
+/**
+ * List all mappings
+ */
+
+export async function listEmpMappedProjModel() {
+  const [rows] = await mariadb.execute(
+    `SELECT * FROM employee_mapped_projects`
+  );
+
+  return rows;
+}
+
+/**
+ * Get active projects by employee ID (JOIN)
+ */
+export async function getEmpMappedProjModel(emp_id) {
+  const [rows] = await mariadb.execute(
+    `
+    SELECT 
+      p.*
+    FROM employee_mapped_projects emp
+    JOIN project_master p 
+      ON emp.project_id = p.project_id
+    WHERE emp.emp_id = ?
+      AND emp.mapping_status = 'active'
+    `,
+    [emp_id]
+  );
+
+  return rows;
+}

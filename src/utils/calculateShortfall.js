@@ -1,6 +1,9 @@
+
+
+
 class CalculateShortfallHrs {
-  // async method
-  static async calculateShortfall(connection, emp_id, date) {
+ // read office start time and end and worked hrs from org table
+  static async calculate(connection, emp_id, date) {
     const [rows] = await connection.query(
       `SELECT 
          MIN(CASE WHEN att_status='CHECK_IN' THEN att_timestamp END) AS first_checkin,
@@ -12,11 +15,24 @@ class CalculateShortfallHrs {
 
     const row = rows[0];
 
-    if (!row.first_checkin || !row.last_checkout) return 0;
+    if (!row.first_checkin || !row.last_checkout) {
+      return {
+        first_checkin: null,
+        last_checkout: null,
+        shortfall_hrs: 0
+      };
+    }
 
-    const workedHours = (new Date(row.last_checkout) - new Date(row.first_checkin)) / 1000 / 3600;
-    const standardHours = 9; // adjust per your org
-    return Math.max(0, standardHours - workedHours); // shortfall
+    const workedHours =
+      (new Date(row.last_checkout) - new Date(row.first_checkin)) / 3600000;
+
+    const standardHours = 9;
+
+    return {
+      first_checkin: row.first_checkin,
+      last_checkout: row.last_checkout,
+      shortfall_hrs: Math.max(0, standardHours - workedHours)
+    };
   }
 }
 

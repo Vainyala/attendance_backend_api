@@ -2,6 +2,7 @@ import {
     createRegularization,
     getRegularization,
     getRegularizationById,
+  getRegularizationByEmpId,
     updateRegularization,
     updateRegularizationPartially,
     deleteRegularization
@@ -9,8 +10,8 @@ import {
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
 import { errorLog } from '../audit/errorLogger.js';
-
 import { mariadb } from '../config/mariadb.js';
+import { getOrgShortNameFromEmp } from '../utils/getOrgShortNameFromEmp.js'
 import SerialNumberGenerator from '../utils/serialGenerator.js';
 import CalculateShortfallHrs from '../utils/calculateShortfall.js';
 /*
@@ -39,65 +40,77 @@ Authorization: Bearer {{access_token}}
 
 
 export async function createReg(req, res) {
-    const connection = await mariadb.getConnection();
-    console.log('req.body:', req.body);
+  const connection = await mariadb.getConnection();
+  let reg_id = null;   // ✅ DEFINE HERE
 
-    try {
-        await connection.beginTransaction();
+  console.log('req.body:', req.body);
 
-        const { org_short_name, emp_id, reg_applied_for_date, reg_justification } = req.body;
+  try {
+    await connection.beginTransaction();
 
-       if (!org_short_name || !emp_id) {
-            await connection.rollback();
-            return badRequest(res, 'org_short_name and emp_id are required');
-        }
+    const { emp_id, reg_applied_for_date, reg_justification } = req.body;
 
-        // ⭐ Generate reg_id INSIDE SAME TRANSACTION
-        const reg_id = await SerialNumberGenerator.generateSerialNumber(
-            org_short_name, 'reg', connection // 👈 IMPORTANT
-        );
-
-        // Calculate shortfall
-        const shortfall_hrs = await CalculateShortfallHrs.calculateShortfall(
-            connection,
-            emp_id,
-            reg_applied_for_date
-        );
-
-        // ⭐ Call MODEL function (clean)
-       await createRegularization(connection, {
-            reg_id,
-            org_short_name,
-            emp_id,
-            reg_applied_for_date,
-            reg_justification,
-            shortfall_hrs
-        });
-
-        await auditLog({
-            action: 'employee_regularization_create', actor: { reg_id: emp_id },
-             req, meta: {
-                reg_id, org_short_name
-            }
-        });
-        // ✅ commit ONLY after everything success
-        await connection.commit();
-
-        return ok(res, {
-            message: 'Employee Regularization created successfully',
-            data: { reg_id, shortfall_hrs }
-        });
-    } catch (err) {
-        console.log('error:', err);
-        await connection.rollback();
-        await errorLog({ err, req, context: { reg_id } });
-        return serverError(res);
+    if (!emp_id) {
+      await connection.rollback();
+      return badRequest(res, 'emp_id is required');
     }
-    finally {
-        connection.release();
-    }
+
+    // ✅ FIX 1 USED HERE
+    const org_short_name = await getOrgShortNameFromEmp(connection, emp_id);
+
+    reg_id = await SerialNumberGenerator.generateSerialNumber(
+      org_short_name,
+      'reg',
+      connection
+    );
+
+    const {
+  first_checkin,
+  last_checkout,
+  shortfall_hrs
+} = await CalculateShortfallHrs.calculate(
+      connection,
+      emp_id,
+      reg_applied_for_date
+    );
+
+    await createRegularization(connection, {
+  reg_id,
+  emp_id,
+  reg_applied_for_date,
+  reg_justification,
+  reg_first_check_in: first_checkin,  // ✅ add this
+  reg_last_check_out: last_checkout,  // ✅ add this
+  shortfall_hrs
+});
+
+
+    await auditLog({
+      action: 'employee_regularization_create',
+      actor: { emp_id },
+      req,
+      meta: { reg_id }
+    });
+
+    await connection.commit();
+
+    return ok(res, {
+      message: 'Employee Regularization created successfully',
+      data: { reg_id, shortfall_hrs }
+    });
+
+  } catch (err) {
+    await connection.rollback();
+    console.log('error:', err);
+
+    // ✅ reg_id now SAFE
+    await errorLog({ err, req, context: { reg_id } });
+
+    return serverError(res);
+  } finally {
+    connection.release();
+  }
 }
-
 
 
 /*
@@ -133,6 +146,19 @@ export async function getReg(req, res) {
     }
 }
 
+
+export async function getRegByEmpId(req, res) {
+    const { emp_id } = req.params;
+    try {
+        const reg = await getRegularizationByEmpId(emp_id);
+        if (!reg) return notFound(res, 'Employee not found');
+        return ok(res, reg);
+    } catch (err) {
+        console.log('error:', err)
+        await errorLog({ err, req, context: { reg_id, emp_id } });
+        return serverError(res);
+    }
+}
 /*
 PUT {{base_url}}/api/v1/regularization/REG2025120003
 Authorization: Bearer {{access_token}}

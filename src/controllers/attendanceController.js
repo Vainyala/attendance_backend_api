@@ -119,26 +119,32 @@ export async function listAtt(req, res) {
 }
 
 
+// get attendance by emp_id
+export async function getAttByEmpId(req, res) {
+
+  const { emp_id } = req.params;
+
+  try {
+    const emp = await getAttendanceByEmpId(emp_id);
+
+    if (!emp || emp.length === 0) {
+      return notFound(res, 'Employee attendance not found');
+    }
+
+    return ok(res, emp);
+
+  } catch (err) {
+    console.log('error:', err);
+    await errorLog({ err, req, context: { emp_id } });
+    return serverError(res);
+  }
+}
+
 /*
 GET {{base_url}}/api/v1/attendance/EMP001
 Authorization: Bearer {{access_token}}
 
 */
-
-// export async function getAtt(req, res) {
-//   const { att_id } = req.params;
-//   try {
-//       // fetch the project_site_lat and project_site_long, and project_site_name 
-//       // from project_site_mapping table using  project_id and project_site_id
-//     const att = await getAttendanceById(att_id);
-//     if (!att) return notFound(res, 'Employee attendance not found');
-//     return ok(res, att);
-//   } catch (err) {
-//     await errorLog({ err, req, context: { att_id } });
-//     return serverError(res);
-//   }
-// }
-
 
 export async function getAtt(req, res) {
   const { att_id } = req.params;
@@ -183,22 +189,3 @@ export async function getAtt(req, res) {
 }
 
 
-
-// get attendance by emp_id
-export async function getAttByEmpId(req, res) {
-
-  const { emp_id } = req.params;
-  console.log('body:', req.body);
-  try {
-    // fetch the latlong from project_master using the project_id
-    //fetch the project_site_name from project_site_mapping using project_id 
-    // and project_site_id
-    const emp = await getAttendanceByEmpId(emp_id);
-    if (!emp) return notFound(res, 'Employee attendance not found');
-    return ok(res, emp);
-  } catch (err) {
-    console.log('error:', err);
-    await errorLog({ err, req, context: { emp_id } });
-    return serverError(res);
-  }
-}

@@ -21,7 +21,8 @@ import projectSiteRoutes from './routes/projectSiteRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js'
 import healthRoutes from './routes/healthRoutes.js';
 import regularizationRoutes from './routes/regularizationRoutes.js'
-
+import syncRoutes from './routes/syncRoutes.js';
+import employeeMappedProjectsRoutes from './routes/employeeMappedProjectsRoutes.js';
 const app = express();
 
 // Your existing middleware
@@ -42,6 +43,11 @@ app.use('/api/v1/shift', shiftRoutes);
 app.use('/api/v1/attendance',attendanceRoutes);
 app.use('/api/v1/regularization', regularizationRoutes);
 app.use('/api/v1/projects_site', projectSiteRoutes);
+app.use('/api/v1/emp_mapped_projects', employeeMappedProjectsRoutes);
+
+//manual Sync icon click
+app.use('/api/v1/sync', syncRoutes);
+
 
 // Health
 app.get('/health', (_req, res) => res.status(200).json({ ok: true, env: env.nodeEnv }));

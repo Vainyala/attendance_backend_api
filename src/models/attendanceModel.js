@@ -13,6 +13,7 @@ export async function createAttendance(connection, data) {
     att_geofence_name, project_id, att_notes, att_status, verification_type,
     is_verified
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    
     [
       att_id, emp_id, att_latitude, att_longitude,
     att_geofence_name, project_id, att_notes, att_status, verification_type,
@@ -27,6 +28,21 @@ export async function getAttendance() {
   return rows;
 }
 
+
+export async function getAttendanceByEmpId(emp_id) {
+  const [rows] = await mariadb.execute(
+    `
+    SELECT *
+    FROM employee_attendance
+    WHERE emp_id = ?
+    ORDER BY att_timestamp DESC
+    `,
+    [emp_id]
+  );
+  return rows;
+}
+
+
 export async function getAttendanceById(att_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM employee_attendance WHERE att_id = ? LIMIT 1',
@@ -35,13 +51,7 @@ export async function getAttendanceById(att_id) {
   return rows[0] || null;
 }
 
-export async function getAttendanceByEmpId(emp_id) {
-  const [rows] = await mariadb.execute(
-    'SELECT * FROM employee_attendance WHERE emp_id = ? LIMIT 1',
-    [emp_id]
-  );
-  return rows[0] || null;
-}
+
 
 export async function getAttendanceByDateRange(from_date, to_date) {
   const [rows] = await mariadb.execute(
