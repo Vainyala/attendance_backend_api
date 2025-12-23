@@ -1,11 +1,11 @@
 import {
-    createRegularization,
-    getRegularization,
-    getRegularizationById,
+  createRegularization,
+  getRegularization,
+  getRegularizationById,
   getRegularizationByEmpId,
-    updateRegularization,
-    updateRegularizationPartially,
-    deleteRegularization
+  updateRegularization,
+  updateRegularizationPartially,
+  deleteRegularization
 } from '../models/regularizationModel.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
@@ -65,24 +65,24 @@ export async function createReg(req, res) {
     );
 
     const {
-  first_checkin,
-  last_checkout,
-  shortfall_hrs
-} = await CalculateShortfallHrs.calculate(
+      first_checkin,
+      last_checkout,
+      shortfall_hrs
+    } = await CalculateShortfallHrs.calculate(
       connection,
       emp_id,
       reg_applied_for_date
     );
 
     await createRegularization(connection, {
-  reg_id,
-  emp_id,
-  reg_applied_for_date,
-  reg_justification,
-  reg_first_check_in: first_checkin,  // ✅ add this
-  reg_last_check_out: last_checkout,  // ✅ add this
-  shortfall_hrs
-});
+      reg_id,
+      emp_id,
+      reg_applied_for_date,
+      reg_justification,
+      reg_first_check_in: first_checkin,  // ✅ add this
+      reg_last_check_out: last_checkout,  // ✅ add this
+      shortfall_hrs
+    });
 
 
     await auditLog({
@@ -119,13 +119,13 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function listReg(req, res) {
-    try {
-        const reg = await getRegularization();
-        return ok(res, reg);
-    } catch (err) {
-        await errorLog({ err, req });
-        return serverError(res);
-    }
+  try {
+    const reg = await getRegularization();
+    return ok(res, reg);
+  } catch (err) {
+    await errorLog({ err, req });
+    return serverError(res);
+  }
 }
 
 /*
@@ -134,30 +134,30 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function getReg(req, res) {
-    const { reg_id } = req.params;
-    try {
-        const reg = await getRegularizationById(reg_id);
-        if (!reg) return notFound(res, 'Employee not found');
-        return ok(res, reg);
-    } catch (err) {
-        console.log('error:', err)
-        await errorLog({ err, req, context: { reg_id } });
-        return serverError(res);
-    }
+  const { reg_id } = req.params;
+  try {
+    const reg = await getRegularizationById(reg_id);
+    if (!reg) return notFound(res, 'Employee not found');
+    return ok(res, reg);
+  } catch (err) {
+    console.log('error:', err)
+    await errorLog({ err, req, context: { reg_id } });
+    return serverError(res);
+  }
 }
 
 
 export async function getRegByEmpId(req, res) {
-    const { emp_id } = req.params;
-    try {
-        const reg = await getRegularizationByEmpId(emp_id);
-        if (!reg) return notFound(res, 'Employee not found');
-        return ok(res, reg);
-    } catch (err) {
-        console.log('error:', err)
-        await errorLog({ err, req, context: { reg_id, emp_id } });
-        return serverError(res);
-    }
+  const { emp_id } = req.params;
+  try {
+    const reg = await getRegularizationByEmpId(emp_id);
+    if (!reg) return notFound(res, 'Employee not found');
+    return ok(res, reg);
+  } catch (err) {
+    console.log('error:', err)
+    await errorLog({ err, req, context: { reg_id, emp_id } });
+    return serverError(res);
+  }
 }
 /*
 PUT {{base_url}}/api/v1/regularization/REG2025120003
@@ -176,23 +176,23 @@ here should pass all fields names and into that update can do
 
 */
 export async function updateReg(req, res) {
-    const { reg_id } = req.params;   // ✅ CORRECT
+  const { reg_id } = req.params;   // ✅ CORRECT
 
-    console.log('update body:', req.body);
-    try {
-        await updateRegularization(reg_id, req.body);
-        await auditLog({
-            action: 'employee_regularization_update', actor: {
-                reg_id: req.user?.reg_id
+  console.log('update body:', req.body);
+  try {
+    await updateRegularization(reg_id, req.body);
+    await auditLog({
+      action: 'employee_regularization_update', actor: {
+        reg_id: req.user?.reg_id
 
-            }, req, meta: { reg_id }
-        });
-        return ok(res, { message: 'Employee Regularization updated successfully' });
-    } catch (err) {
-        console.log('error:', err)
-        await errorLog({ err, req, context: { reg_id } });
-        return serverError(res);
-    }
+      }, req, meta: { reg_id }
+    });
+    return ok(res, { message: 'Employee Regularization updated successfully' });
+  } catch (err) {
+    console.log('error:', err)
+    await errorLog({ err, req, context: { reg_id } });
+    return serverError(res);
+  }
 }
 
 /*
@@ -205,23 +205,23 @@ into this can update one or all field can change
 
 */
 export async function updateRegPartially(req, res) {
-    const { reg_id } = req.params;
-    console.log('error:', req.body)
+  const { reg_id } = req.params;
+  console.log('error:', req.body)
 
-    try {
-        await updateRegularizationPartially(reg_id, req.body);
-        await auditLog({
-            action: 'employee_regularization_update', actor: {
-                reg_id: req.user?.reg_id
+  try {
+    await updateRegularizationPartially(reg_id, req.body);
+    await auditLog({
+      action: 'employee_regularization_update', actor: {
+        reg_id: req.user?.reg_id
 
-            }, req, meta: { reg_id }
-        });
-        return ok(res, { message: 'Employee Regularization  updated successfully' });
-    } catch (err) {
-        console.log('error:', err)
-        await errorLog({ err, req, context: { reg_id } });
-        return serverError(res);
-    }
+      }, req, meta: { reg_id }
+    });
+    return ok(res, { message: 'Employee Regularization  updated successfully' });
+  } catch (err) {
+    console.log('error:', err)
+    await errorLog({ err, req, context: { reg_id } });
+    return serverError(res);
+  }
 }
 
 /*
@@ -230,19 +230,19 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function deleteReg(req, res) {
-    const { reg_id } = req.params;
-    try {
-        await deleteRegularization(reg_id);
-        await auditLog({
-            action: 'employee_regularization_delete', actor: {
-                reg_id: req.user?.reg_id
+  const { reg_id } = req.params;
+  try {
+    await deleteRegularization(reg_id);
+    await auditLog({
+      action: 'employee_regularization_delete', actor: {
+        reg_id: req.user?.reg_id
 
-            }, req, meta: { reg_id }
-        });
-        return ok(res, { message: 'Employee Regularization deleted successfully' });
-    } catch (err) {
-        console.log('error:', err)
-        await errorLog({ err, req, context: { reg_id } });
-        return serverError(res);
-    }
+      }, req, meta: { reg_id }
+    });
+    return ok(res, { message: 'Employee Regularization deleted successfully' });
+  } catch (err) {
+    console.log('error:', err)
+    await errorLog({ err, req, context: { reg_id } });
+    return serverError(res);
+  }
 }
