@@ -6,15 +6,23 @@ import { mariadb } from '../config/mariadb.js';
  * org_id is now auto-generated, so it comes from the controller
  */
 export async function createOrganization({
-  org_id, org_name, org_short_name, org_email
+  org_id, org_name, org_short_name, org_email,office_working_start_day,
+  office_working_end_day,office_start_hrs,office_end_hrs,working_hrs_in_number
 }) {
-  if (!org_id || !org_name || !org_short_name || !org_email) {
-    throw new Error('Missing required fields: org_id, org_name, org_short_name, org_email');
+  if (!org_id || !org_short_name || !org_email) {
+    throw new Error('Missing required fields: org_id, org_short_name, org_email');
   }
 
   const [result] = await mariadb.execute(
-    'INSERT INTO organization_master (org_id, org_name, org_short_name, org_email) VALUES (?, ?, ?, ?)',
-    [org_id, org_name, org_short_name, org_email]
+    `INSERT INTO organization_master 
+    (org_id, org_name, org_short_name,
+     org_email, office_working_start_day,
+  office_working_end_day, office_start_hrs,
+  office_end_hrs, working_hrs_in_number)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [org_id, org_name, org_short_name, org_email,office_working_start_day,
+  office_working_end_day, office_start_hrs,
+  office_end_hrs, working_hrs_in_number]
   );
   return result;
 }
@@ -23,8 +31,7 @@ export async function createOrganization({
  * Get all organizations
  */
 export async function getOrganizations() {
-  const [rows] = await mariadb.execute(
-    'SELECT org_id, org_name, org_short_name, org_email, created_at, updated_at FROM organization_master ORDER BY created_at DESC'
+  const [rows] = await mariadb.execute('SELECT * FROM organization_master'
   );
   return rows;
 }
@@ -44,26 +51,15 @@ export async function getOrganizationById(org_id) {
   return rows[0] || null;
 }
 
-/**
- * Get organization by short name
-
-export async function getOrganizationByShortName(org_short_name) {
-  if (!org_short_name) {
-    throw new Error('org_short_name is required');
-  }
-
-  const [rows] = await mariadb.execute(
-    'SELECT * FROM organization_master WHERE org_short_name = ? LIMIT 1',
-    [org_short_name]
-  );
-  return rows[0] || null;
-}
- */
 
 /**
  * Update organization by ID
  */
-export async function updateOrganization(org_id, { org_name, org_short_name, org_email }) {
+export async function updateOrganization(org_id,
+   { org_name, org_short_name, org_email
+
+    }) {
+
   if (!org_id) {
     throw new Error('org_id is required');
   }

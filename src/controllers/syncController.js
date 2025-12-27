@@ -18,8 +18,16 @@ export const manualSync = async (req, res) => {
     }
 
     const now = new Date();
-    const month = now.getMonth() + 1;
     const year = now.getFullYear();
+
+    // 🔹 Month range (FIX)
+    const monthStart = new Date(year, now.getMonth(), 1)
+      .toISOString()
+      .slice(0, 10);
+
+    const monthEnd = new Date(year, now.getMonth() + 1, 0)
+      .toISOString()
+      .slice(0, 10);
 
     // ✅ 1. Employee
     const employee = await getEmployeeById(emp_id);

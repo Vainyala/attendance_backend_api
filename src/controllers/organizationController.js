@@ -23,11 +23,15 @@ POST http://localhost:4000/api/v1/organizations
 */
 export async function createOrg(req, res) {
   console.log("body:", req.body);
-  const { org_name, org_short_name, org_email } = req.body || {};
+  const { org_name, org_short_name,
+    org_email, office_working_start_day,
+    office_working_end_day, office_start_hrs,
+    office_end_hrs, working_hrs_in_number
+  } = req.body || {};
 
   // Validate required fields (org_id is NO LONGER required from user)
-  if (!org_short_name || !org_name || !org_email) {
-    return badRequest(res, 'org_short_name, org_name, and org_email are required', 'VALIDATION');
+  if (!org_short_name || !org_email) {
+    return badRequest(res, 'org_short_name, and org_email are required', 'VALIDATION');
   }
 
   // Validate org_short_name length
@@ -47,7 +51,9 @@ export async function createOrg(req, res) {
       org_id,
       org_name,
       org_short_name: normalizedShortName,
-      org_email
+      org_email, office_working_start_day,
+      office_working_end_day, office_start_hrs,
+      office_end_hrs, working_hrs_in_number
     });
 
     await auditLog({
@@ -69,12 +75,12 @@ export async function createOrg(req, res) {
     });
   } catch (err) {
     console.log("error:", err);
-    
+
     // Check for duplicate org_short_name error
     if (err.code === 'ER_DUP_ENTRY') {
       return badRequest(res, 'Organization with this short name already exists', 'DUPLICATE');
     }
-    
+
     await errorLog({ err, req, context: { org_short_name, org_name } });
     return serverError(res);
   }
