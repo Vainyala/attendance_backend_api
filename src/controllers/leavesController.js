@@ -1,22 +1,21 @@
-import {createRegularization,getRegularization,
-  getRegularizationById,getRegularizationByEmpId,
-  updateRegularization,updateRegularizationPartially,
-  deleteRegularization } from '../models/regularizationModel.js';
+import {createLeaves,getLeaves,
+  getLeavesById,getLeavesByEmpId,
+  updateLeaves,updateLeavesPartially,
+  deleteLeaves } from '../models/leavesModel.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { auditLog } from '../audit/auditLogger.js';
 import { errorLog } from '../audit/errorLogger.js';
 import { mariadb } from '../config/mariadb.js';
 import { getOrgShortNameFromEmp } from '../utils/getOrgShortNameFromEmp.js'
 import SerialNumberGenerator from '../utils/serialGenerator.js';
-import CalculateShortfallHrs from '../utils/calculateShortfall.js';
 /*
 POST {{base_url}}/api/v1/regularization
 Authorization: Bearer {{access_token}}
 
 {
-  "reg_id": "REG2025120003",
+  "leave_id": "REG2025120003",
   "emp_id": "NUTANTEKE20250600002",
-  "reg_applied_for_date": "2025-12-05",
+  "leave_from_date": "2025-12-05",
   "shortfall_hrs": 9.00,
   "reg_justification": "Heavy Rain",
   "reg_approval_status": "REJECTED"
@@ -24,16 +23,17 @@ Authorization: Bearer {{access_token}}
 */
 
 
-export async function createReg(req, res) {
+export async function create_leaves(req, res) {
   const connection = await mariadb.getConnection();
-  let reg_id = null;   // ✅ DEFINE HERE
+  let leave_id = null;   // ✅ DEFINE HERE
 
   console.log('req.body:', req.body);
 
   try {
     await connection.beginTransaction();
 
-    const { emp_id, reg_applied_for_date, reg_justification } = req.body;
+    const { emp_id, leave_from_date, leave_to_date, 
+        leave_type, leave_justification } = req.body;
 
     if (!emp_id) {
       await connection.rollback();
@@ -43,9 +43,9 @@ export async function createReg(req, res) {
     // ✅ FIX 1 USED HERE
     const org_short_name = await getOrgShortNameFromEmp(connection, emp_id);
 
-    reg_id = await SerialNumberGenerator.generateSerialNumber(
+    leave_id = await SerialNumberGenerator.generateSerialNumber(
       org_short_name,
-      'reg',
+      'leave',
       connection
     );
 
@@ -56,14 +56,14 @@ export async function createReg(req, res) {
     } = await CalculateShortfallHrs.calculate(
       connection,
       emp_id,
-      reg_applied_for_date
+      leave_from_date
     );
 
     await createRegularization(connection, {
-      reg_id,
+      leave_id,
       emp_id,
-      reg_applied_for_date,
-      reg_justification,
+      leave_from_date,
+      leave_justification,
       reg_first_check_in: first_checkin,  // ✅ add this
       reg_last_check_out: last_checkout,  // ✅ add this
       shortfall_hrs
@@ -74,22 +74,22 @@ export async function createReg(req, res) {
       action: 'employee_regularization_create',
       actor: { emp_id },
       req,
-      meta: { reg_id }
+      meta: { leave_id }
     });
 
     await connection.commit();
 
     return ok(res, {
       message: 'Employee Regularization created successfully',
-      data: { reg_id, shortfall_hrs }
+      data: { leave_id, shortfall_hrs }
     });
 
   } catch (err) {
     await connection.rollback();
     console.log('error:', err);
 
-    // ✅ reg_id now SAFE
-    await errorLog({ err, req, context: { reg_id } });
+    // ✅ leave_id now SAFE
+    await errorLog({ err, req, context: { leave_id } });
 
     return serverError(res);
   } finally {
@@ -119,14 +119,14 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function getReg(req, res) {
-  const { reg_id } = req.params;
+  const { leave_id } = req.params;
   try {
-    const reg = await getRegularizationById(reg_id);
+    const reg = await getRegularizationById(leave_id);
     if (!reg) return notFound(res, 'Employee not found');
     return ok(res, reg);
   } catch (err) {
     console.log('error:', err)
-    await errorLog({ err, req, context: { reg_id } });
+    await errorLog({ err, req, context: { leave_id } });
     return serverError(res);
   }
 }
@@ -140,7 +140,7 @@ export async function getRegByEmpId(req, res) {
     return ok(res, reg);
   } catch (err) {
     console.log('error:', err)
-    await errorLog({ err, req, context: { reg_id, emp_id } });
+    await errorLog({ err, req, context: { leave_id, emp_id } });
     return serverError(res);
   }
 }
@@ -150,9 +150,9 @@ Authorization: Bearer {{access_token}}
 here should pass all fields names and into that update can do
 
 {
-  "reg_id": "REG2025120003",
+  "leave_id": "REG2025120003",
   "emp_id": "NUTANTEKE20250600002",
-  "reg_applied_for_date": "2025-12-05",
+  "leave_from_date": "2025-12-05",
   "shortfall_hrs": 9.00,
   "reg_justification": "Traffic", 
   "reg_approval_status": "REJECTED"
@@ -161,21 +161,21 @@ here should pass all fields names and into that update can do
 
 */
 export async function updateReg(req, res) {
-  const { reg_id } = req.params;   // ✅ CORRECT
+  const { leave_id } = req.params;   // ✅ CORRECT
 
   console.log('update body:', req.body);
   try {
-    await updateRegularization(reg_id, req.body);
+    await updateRegularization(leave_id, req.body);
     await auditLog({
       action: 'employee_regularization_update', actor: {
-        reg_id: req.user?.reg_id
+        leave_id: req.user?.leave_id
 
-      }, req, meta: { reg_id }
+      }, req, meta: { leave_id }
     });
     return ok(res, { message: 'Employee Regularization updated successfully' });
   } catch (err) {
     console.log('error:', err)
-    await errorLog({ err, req, context: { reg_id } });
+    await errorLog({ err, req, context: { leave_id } });
     return serverError(res);
   }
 }
@@ -190,21 +190,21 @@ into this can update one or all field can change
 
 */
 export async function updateRegPartially(req, res) {
-  const { reg_id } = req.params;
+  const { leave_id } = req.params;
   console.log('error:', req.body)
 
   try {
-    await updateRegularizationPartially(reg_id, req.body);
+    await updateRegularizationPartially(leave_id, req.body);
     await auditLog({
       action: 'employee_regularization_update', actor: {
-        reg_id: req.user?.reg_id
+        leave_id: req.user?.leave_id
 
-      }, req, meta: { reg_id }
+      }, req, meta: { leave_id }
     });
     return ok(res, { message: 'Employee Regularization  updated successfully' });
   } catch (err) {
     console.log('error:', err)
-    await errorLog({ err, req, context: { reg_id } });
+    await errorLog({ err, req, context: { leave_id } });
     return serverError(res);
   }
 }
@@ -215,19 +215,19 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function deleteReg(req, res) {
-  const { reg_id } = req.params;
+  const { leave_id } = req.params;
   try {
-    await deleteRegularization(reg_id);
+    await deleteRegularization(leave_id);
     await auditLog({
       action: 'employee_regularization_delete', actor: {
-        reg_id: req.user?.reg_id
+        leave_id: req.user?.leave_id
 
-      }, req, meta: { reg_id }
+      }, req, meta: { leave_id }
     });
     return ok(res, { message: 'Employee Regularization deleted successfully' });
   } catch (err) {
     console.log('error:', err)
-    await errorLog({ err, req, context: { reg_id } });
+    await errorLog({ err, req, context: { leave_id } });
     return serverError(res);
   }
 }

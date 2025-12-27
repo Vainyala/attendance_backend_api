@@ -12,6 +12,7 @@ import { env } from '../config/env.js';
 
 export async function login(req, res) {
   const { email_id, password } = req.body || {};
+  console.log("body:",req.body);
   if (!email_id || !password) return badRequest(res, 'email_id and password are required', 'VALIDATION');
 
   try {

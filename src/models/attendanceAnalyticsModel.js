@@ -5,10 +5,12 @@ export async function getAttSummary(emp_id, startDate, endDate) {
     `SELECT
       COUNT(*) AS days,
       SUM(att_type = 'Present') AS present,
-      SUM(att_type = 'Leave') AS leave_count,
+      SUM(att_type = 'Leave') AS leave_days,
       SUM(att_type = 'Absent') AS absent,
-      SUM(on_time = 1) AS on_time,
-      SUM(late = 1) AS late
+      SUM(att_type = 'Holiday') AS holidays,
+      SUM(att_type = 'Weekend') AS weekends,
+      SUM(on_time) AS ontime,
+      SUM(late) AS late
      FROM attendance_analytics
      WHERE emp_id = ?
        AND att_date BETWEEN ? AND ?`,
@@ -17,5 +19,25 @@ export async function getAttSummary(emp_id, startDate, endDate) {
 
   return rows[0];
 }
+
+export const getDailyAnalytics = async (req, res) => {
+  const { emp_id, date } = req.query;
+
+  const [rows] = await mariadb.query(
+    `SELECT
+       att_date,
+       first_checkin,
+       last_checkout,
+       worked_hrs,
+       shortfall_hrs,
+       att_type
+     FROM attendance_analytics
+     WHERE emp_id=? AND att_date=?
+     LIMIT 1`,
+    [emp_id, date]
+  );
+
+  res.json({ success: true, data: rows[0] || null });
+};
 
 

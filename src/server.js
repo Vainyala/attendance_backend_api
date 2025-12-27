@@ -63,9 +63,11 @@ app.use((_req, res) => res.status(404).json({ success: false, error: { code: 'NO
 // Error handler (last)
 app.use((err, req, res, _next) => {
   console.error(err);
-  res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Unexpected error' } });
+  res.status(500).json({ 
+    success: false, error: { code: 'SERVER_ERROR', message: 'Unexpected error' } });
 });
 
-app.listen(env.port, () => {
+app.listen(env.port, '0.0.0.0', () => {
   console.log(`attendancebackend listening on port ${env.port}`);
 });
+
