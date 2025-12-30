@@ -157,12 +157,14 @@ Authorization: Bearer {{access_token}}
 
 */
 export async function getEmp(req, res) {
+  console.log("Employee data called: ", req.params);
   const { emp_id } = req.params;
   try {
     const emp = await getEmployeeById(emp_id);
     if (!emp) return notFound(res, 'Employee not found');
     return ok(res, emp);
   } catch (err) {
+    console.log("Employee data error: ", err);
     await errorLog({ err, req, context: { emp_id } });
     return serverError(res);
   }

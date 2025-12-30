@@ -21,6 +21,7 @@ import projectSiteRoutes from './routes/projectSiteRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js'
 import healthRoutes from './routes/healthRoutes.js';
 import regularizationRoutes from './routes/regularizationRoutes.js'
+import leavesRoutes from './routes/leavesRoutes.js'
 import syncRoutes from './routes/syncRoutes.js';
 import employeeMappedProjectsRoutes from './routes/employeeMappedProjectsRoutes.js';
 import attendanceAnalyticsRoutes from './routes/attendanceAnalyticsRoutes.js';
@@ -45,6 +46,7 @@ app.use('/api/v1/employee', employeeRoutes);
 app.use('/api/v1/shift', shiftRoutes);
 app.use('/api/v1/attendance',attendanceRoutes);
 app.use('/api/v1/regularization', regularizationRoutes);
+app.use('/api/v1/leaves', leavesRoutes);
 app.use('/api/v1/projects_site', projectSiteRoutes);
 app.use('/api/v1/emp_mapped_projects', employeeMappedProjectsRoutes);
 app.use('/api/v1/attendance_analytics', attendanceAnalyticsRoutes);

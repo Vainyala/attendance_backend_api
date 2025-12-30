@@ -35,6 +35,7 @@ function getDateRange(type, date) {
 
 
 export const getSummary = async (req, res) => {
+  console.log("Employee data called: ", req.params);
   try {
     const { emp_id, type, date } = req.query;
 

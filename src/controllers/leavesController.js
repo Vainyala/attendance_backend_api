@@ -49,29 +49,25 @@ export async function create_leaves(req, res) {
       connection
     );
 
-    const {
-      first_checkin,
-      last_checkout,
-      shortfall_hrs
-    } = await CalculateShortfallHrs.calculate(
-      connection,
-      emp_id,
-      leave_from_date
-    );
+    //const
+  //  = await CalculateShortfallHrs.calculate(
+  //     connection,
+  //     emp_id,
+  //     leave_from_date
+  //   );
 
-    await createRegularization(connection, {
+    await createLeaves(connection, {
       leave_id,
       emp_id,
       leave_from_date,
-      leave_justification,
-      reg_first_check_in: first_checkin,  // ✅ add this
-      reg_last_check_out: last_checkout,  // ✅ add this
-      shortfall_hrs
+      leave_to_date,
+      leave_type,
+      leave_justification
     });
 
 
     await auditLog({
-      action: 'employee_regularization_create',
+      action: 'employee_leaves_create',
       actor: { emp_id },
       req,
       meta: { leave_id }
@@ -80,8 +76,8 @@ export async function create_leaves(req, res) {
     await connection.commit();
 
     return ok(res, {
-      message: 'Employee Regularization created successfully',
-      data: { leave_id, shortfall_hrs }
+      message: 'Employee Leaves created successfully',
+      data: { leave_id }
     });
 
   } catch (err) {
@@ -93,7 +89,9 @@ export async function create_leaves(req, res) {
 
     return serverError(res);
   } finally {
+    
     connection.release();
+    console.log('Conncection is released...');
   }
 }
 
@@ -103,9 +101,9 @@ GET {{base_url}}/api/v1/regularization
 Authorization: Bearer {{access_token}}
 
 */
-export async function listReg(req, res) {
+export async function list_leaves(req, res) {
   try {
-    const reg = await getRegularization();
+    const reg = await getLeaves();
     return ok(res, reg);
   } catch (err) {
     await errorLog({ err, req });
@@ -118,12 +116,13 @@ GET {{base_url}}/api/v1/regularization/REG2025120003
 Authorization: Bearer {{access_token}}
 
 */
-export async function getReg(req, res) {
+export async function get_leaves(req, res) {
   const { leave_id } = req.params;
+  console.log('Body:', req.params);
   try {
-    const reg = await getRegularizationById(leave_id);
-    if (!reg) return notFound(res, 'Employee not found');
-    return ok(res, reg);
+    const leave = await getLeavesById(leave_id);
+    if (!leave) return notFound(res, 'Employee Leaves not found');
+    return ok(res, leave);
   } catch (err) {
     console.log('error:', err)
     await errorLog({ err, req, context: { leave_id } });
@@ -132,14 +131,15 @@ export async function getReg(req, res) {
 }
 
 
-export async function getRegByEmpId(req, res) {
+export async function get_leavesByEmpId(req, res) {
   const { emp_id } = req.params;
+  console.log('Body:', req.params);
   try {
-    const reg = await getRegularizationByEmpId(emp_id);
+    const reg = await getLeavesByEmpId(emp_id);
     if (!reg) return notFound(res, 'Employee not found');
     return ok(res, reg);
   } catch (err) {
-    console.log('error:', err)
+    console.log('error:', err);
     await errorLog({ err, req, context: { leave_id, emp_id } });
     return serverError(res);
   }
@@ -160,19 +160,19 @@ here should pass all fields names and into that update can do
 
 
 */
-export async function updateReg(req, res) {
+export async function update_leaves(req, res) {
   const { leave_id } = req.params;   // ✅ CORRECT
 
   console.log('update body:', req.body);
   try {
-    await updateRegularization(leave_id, req.body);
+    await updateLeaves(leave_id, req.body);
     await auditLog({
-      action: 'employee_regularization_update', actor: {
+      action: 'employee_leaves_update', actor: {
         leave_id: req.user?.leave_id
 
       }, req, meta: { leave_id }
     });
-    return ok(res, { message: 'Employee Regularization updated successfully' });
+    return ok(res, { message: 'Employee Leaves updated successfully' });
   } catch (err) {
     console.log('error:', err)
     await errorLog({ err, req, context: { leave_id } });
@@ -181,7 +181,7 @@ export async function updateReg(req, res) {
 }
 
 /*
-PATCH {{base_url}}/api/v1/regularization/REG2025120003
+PATCH {{base_url}}/api/v1/leaves/REG2025120003
 Authorization: Bearer {{access_token}}
 into this can update one or all field can change
 {
@@ -189,19 +189,19 @@ into this can update one or all field can change
 }
 
 */
-export async function updateRegPartially(req, res) {
+export async function update_leavesPartially(req, res) {
   const { leave_id } = req.params;
-  console.log('error:', req.body)
+  console.log('body:', req.body)
 
   try {
-    await updateRegularizationPartially(leave_id, req.body);
+    await updateLeavesPartially(leave_id, req.body);
     await auditLog({
-      action: 'employee_regularization_update', actor: {
+      action: 'employee_leaves_update', actor: {
         leave_id: req.user?.leave_id
 
       }, req, meta: { leave_id }
     });
-    return ok(res, { message: 'Employee Regularization  updated successfully' });
+    return ok(res, { message: 'Employee Leaves  updated successfully' });
   } catch (err) {
     console.log('error:', err)
     await errorLog({ err, req, context: { leave_id } });
@@ -210,21 +210,21 @@ export async function updateRegPartially(req, res) {
 }
 
 /*
-DELETE {{base_url}}/api/v1/regularization/REG2025120003
+DELETE {{base_url}}/api/v1/leaves/REG2025120003
 Authorization: Bearer {{access_token}}
 
 */
-export async function deleteReg(req, res) {
+export async function delete_leaves(req, res) {
   const { leave_id } = req.params;
   try {
-    await deleteRegularization(leave_id);
+    await deleteLeaves(leave_id);
     await auditLog({
-      action: 'employee_regularization_delete', actor: {
+      action: 'employee_Leaves_delete', actor: {
         leave_id: req.user?.leave_id
 
       }, req, meta: { leave_id }
     });
-    return ok(res, { message: 'Employee Regularization deleted successfully' });
+    return ok(res, { message: 'Employee Leaves deleted successfully' });
   } catch (err) {
     console.log('error:', err)
     await errorLog({ err, req, context: { leave_id } });
