@@ -121,7 +121,7 @@ export async function listAtt(req, res) {
 
 // get attendance by emp_id
 export async function getAttByEmpId(req, res) {
-
+console.log("Attendance data called: ", req.params);
   const { emp_id } = req.params;
 
   try {
