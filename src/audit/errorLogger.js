@@ -16,12 +16,14 @@
 
 */
 
-import { mongo } from '../config/mongodb.js';
-import { nowISO } from '../utils/time.js';
+// src/audit/errorLogger.js
+const { mongo } = require('../config/mongodb.js');
+const { nowISO } = require('../utils/time.js');
 
-export async function errorLog({ err, req, context = {}, level = 'ERROR' }) {
+async function errorLog({ err, req, context = {}, level = 'ERROR' }) {
   try {
-    await mongo.errors.insertOne({
+    const mongoConn = await mongo; // mongo is a promise
+    await mongoConn.errors.insertOne({
       ts: nowISO(),
       level,
       name: err.name || 'Error',
@@ -34,3 +36,5 @@ export async function errorLog({ err, req, context = {}, level = 'ERROR' }) {
     // fail-silent
   }
 }
+
+module.exports = { errorLog };

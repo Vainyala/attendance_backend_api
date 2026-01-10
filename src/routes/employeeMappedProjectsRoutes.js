@@ -1,12 +1,12 @@
-import express from 'express';
-//import { jwtAuth } from '../middleware/jwtAuth.js';
-import { createEmpMappedProj, listEmpMappedProj, getEmpMappedProj, 
-} from '../controllers/employeeMappedProjectsController.js';
-
+const express = require ('express');
+//const { jwtAuth } = require ('../middleware/jwtAuth.js');
+const { createEmpMappedProj, listEmpMappedProj, getEmpMappedProj, 
+} = require ('../controllers/employeeMappedProjectsController.js');
+const { jwtAuth } = require ('../middleware/jwtAuth.js');
 const router = express.Router();
 
-router.post('/', createEmpMappedProj);
-router.get('/',  listEmpMappedProj);
-router.get('/:emp_id',  getEmpMappedProj);
+router.post('/', jwtAuth, createEmpMappedProj);
+router.get('/',  jwtAuth, listEmpMappedProj);
+router.get('/:emp_id',  jwtAuth, getEmpMappedProj);
 
-export default router;
+module.exports = router;

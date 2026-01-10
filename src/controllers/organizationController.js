@@ -1,14 +1,14 @@
-import {
+const {
   createOrganization,
   getOrganizations,
   getOrganizationById,
   updateOrganization,
   deleteOrganization
-} from '../models/organizationModel.js';
-import { ok, badRequest, notFound, serverError } from '../utils/response.js';
-import { auditLog } from '../audit/auditLogger.js';
-import { errorLog } from '../audit/errorLogger.js';
-import SerialNumberGenerator from '../utils/serialGenerator.js';
+} = require('../models/organizationModel.js');
+const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
+const { auditLog } = require('../audit/auditLogger.js');
+const { errorLog } = require('../audit/errorLogger.js');
+const SerialNumberGenerator = require('../utils/serialGenerator.js');
 
 /*
 Create an Organization - org_id is AUTO-GENERATED
@@ -21,7 +21,7 @@ POST http://localhost:4000/api/v1/organizations
 }
 
 */
-export async function createOrg(req, res) {
+async function createOrg(req, res) {
   console.log("body:", req.body);
   const { org_name, org_short_name,
     org_email, office_working_start_day,
@@ -88,7 +88,7 @@ export async function createOrg(req, res) {
 
 // List Organizations
 // GET http://localhost:4000/api/v1/organizations/list
-export async function listOrgs(req, res) {
+async function listOrgs(req, res) {
   try {
     const orgs = await getOrganizations();
     return ok(res, orgs);
@@ -100,7 +100,7 @@ export async function listOrgs(req, res) {
 
 // Get an Organization by org_id
 // GET http://localhost:4000/api/v1/organizations/ORG1
-export async function getOrg(req, res) {
+async function getOrg(req, res) {
   const { org_id } = req.params;
   if (!org_id) {
     return badRequest(res, 'org_id is required');
@@ -124,7 +124,7 @@ export async function getOrg(req, res) {
   "org_email": "contact@nutantek.com"
 }
 */
-export async function updateOrg(req, res) {
+async function updateOrg(req, res) {
   const { org_id } = req.params;
   if (!org_id) {
     return badRequest(res, 'org_id is required');
@@ -172,7 +172,7 @@ export async function updateOrg(req, res) {
 
 // Delete any Organization
 // DELETE http://localhost:4000/api/v1/organizations/ORG1
-export async function deleteOrg(req, res) {
+async function deleteOrg(req, res) {
   const { org_id } = req.params;
   if (!org_id) {
     return badRequest(res, 'org_id is required');
@@ -187,4 +187,13 @@ export async function deleteOrg(req, res) {
     await errorLog({ err, req, context: { org_id } });
     return serverError(res);
   }
+}
+
+
+module.exports = {
+  createOrg,
+  listOrgs,
+  getOrg,
+  updateOrg,
+  deleteOrg
 }

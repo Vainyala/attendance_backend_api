@@ -1,14 +1,14 @@
-import {
+const {
   createAttendance, getAttendance, //getAttendanceById,
   getAttendanceWithSiteById,
   getAttendanceByEmpId, getAttendanceByDateRange
-} from '../models/attendanceModel.js';
-import { ok, badRequest, notFound, serverError } from '../utils/response.js';
-import { auditLog } from '../audit/auditLogger.js';
-import { errorLog } from '../audit/errorLogger.js';
-import { getOrgShortNameFromEmp } from '../utils/getOrgShortNameFromEmp.js'
-import { mariadb } from '../config/mariadb.js';
-import SerialNumberGenerator from '../utils/serialGenerator.js';
+} = require('../models/attendanceModel.js');
+const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
+const { auditLog } = require('../audit/auditLogger.js');
+const { errorLog } = require('../audit/errorLogger.js');
+const { getOrgShortNameFromEmp } = require('../utils/getOrgShortNameFromEmp.js');
+const { mariadb } = require('../config/mariadb.js');
+const SerialNumberGenerator = require('../utils/serialGenerator.js');
 
 /*
 POST {{base_url}}/api/v1/attendance
@@ -23,7 +23,7 @@ Authorization: Bearer {{access_token}}
 
 */
 
-export async function createAtt(req, res) {
+async function createAtt(req, res) {
   const connection = await mariadb.getConnection();
   console.log('req.body:', req.body);
 
@@ -90,7 +90,7 @@ GET {{base_url}}/api/v1/attendance
 Authorization: Bearer {{access_token}}
 */
 //get att by date range
-export async function listAtt(req, res) {
+async function listAtt(req, res) {
   const { from_date, to_date } = req.query;
 
   try {
@@ -120,7 +120,7 @@ export async function listAtt(req, res) {
 
 
 // get attendance by emp_id
-export async function getAttByEmpId(req, res) {
+async function getAttByEmpId(req, res) {
 console.log("Attendance data called: ", req.params);
   const { emp_id } = req.params;
 
@@ -146,7 +146,7 @@ Authorization: Bearer {{access_token}}
 
 */
 
-export async function getAtt(req, res) {
+async function getAtt(req, res) {
   const { att_id } = req.params;
 
   try {
@@ -188,4 +188,9 @@ export async function getAtt(req, res) {
   }
 }
 
-
+module.exports = {
+  createAtt,
+  listAtt,
+  getAtt,
+  getAttByEmpId
+}

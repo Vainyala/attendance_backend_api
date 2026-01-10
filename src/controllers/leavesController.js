@@ -1,13 +1,13 @@
-import {createLeaves,getLeaves,
+const {createLeaves,getLeaves,
   getLeavesById,getLeavesByEmpId,
   updateLeaves,updateLeavesPartially,
-  deleteLeaves } from '../models/leavesModel.js';
-import { ok, badRequest, notFound, serverError } from '../utils/response.js';
-import { auditLog } from '../audit/auditLogger.js';
-import { errorLog } from '../audit/errorLogger.js';
-import { mariadb } from '../config/mariadb.js';
-import { getOrgShortNameFromEmp } from '../utils/getOrgShortNameFromEmp.js'
-import SerialNumberGenerator from '../utils/serialGenerator.js';
+  deleteLeaves } = require('../models/leavesModel.js');
+const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
+const { auditLog } = require('../audit/auditLogger.js');
+const { errorLog } = require('../audit/errorLogger.js');
+const { mariadb } = require('../config/mariadb.js');
+const { getOrgShortNameFromEmp } = require('../utils/getOrgShortNameFromEmp.js')
+const SerialNumberGenerator = require('../utils/serialGenerator.js');
 /*
 POST {{base_url}}/api/v1/regularization
 Authorization: Bearer {{access_token}}
@@ -23,8 +23,9 @@ Authorization: Bearer {{access_token}}
 */
 
 
-export async function create_leaves(req, res) {
-  const connection = await mariadb.getConnection();
+async function create_leaves(req, res) {
+ const connection = await mariadb.getConnection();
+
   let leave_id = null;   // ✅ DEFINE HERE
 
   console.log('req.body:', req.body);
@@ -101,7 +102,7 @@ GET {{base_url}}/api/v1/regularization
 Authorization: Bearer {{access_token}}
 
 */
-export async function list_leaves(req, res) {
+async function list_leaves(req, res) {
   try {
     const reg = await getLeaves();
     return ok(res, reg);
@@ -116,7 +117,7 @@ GET {{base_url}}/api/v1/regularization/REG2025120003
 Authorization: Bearer {{access_token}}
 
 */
-export async function get_leaves(req, res) {
+async function get_leaves(req, res) {
   const { leave_id } = req.params;
   console.log('Body:', req.params);
   try {
@@ -131,13 +132,13 @@ export async function get_leaves(req, res) {
 }
 
 
-export async function get_leavesByEmpId(req, res) {
+async function get_leavesByEmpId(req, res) {
   const { emp_id } = req.params;
   console.log('Body:', req.params);
   try {
-    const reg = await getLeavesByEmpId(emp_id);
-    if (!reg) return notFound(res, 'Employee not found');
-    return ok(res, reg);
+    const leaves = await getLeavesByEmpId(emp_id);
+    if (!leaves) return notFound(res, 'Employee not found');
+    return ok(res, leaves);
   } catch (err) {
     console.log('error:', err);
     await errorLog({ err, req, context: { leave_id, emp_id } });
@@ -160,7 +161,7 @@ here should pass all fields names and into that update can do
 
 
 */
-export async function update_leaves(req, res) {
+async function update_leaves(req, res) {
   const { leave_id } = req.params;   // ✅ CORRECT
 
   console.log('update body:', req.body);
@@ -189,7 +190,7 @@ into this can update one or all field can change
 }
 
 */
-export async function update_leavesPartially(req, res) {
+async function update_leavesPartially(req, res) {
   const { leave_id } = req.params;
   console.log('body:', req.body)
 
@@ -214,7 +215,7 @@ DELETE {{base_url}}/api/v1/leaves/REG2025120003
 Authorization: Bearer {{access_token}}
 
 */
-export async function delete_leaves(req, res) {
+async function delete_leaves(req, res) {
   const { leave_id } = req.params;
   try {
     await deleteLeaves(leave_id);
@@ -230,4 +231,15 @@ export async function delete_leaves(req, res) {
     await errorLog({ err, req, context: { leave_id } });
     return serverError(res);
   }
+}
+
+
+module.exports = {
+  get_leaves,
+  create_leaves,
+  list_leaves,
+  get_leavesByEmpId,
+  update_leaves,
+  update_leavesPartially,
+  delete_leaves
 }

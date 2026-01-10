@@ -1,13 +1,13 @@
-import express from 'express';
-import { jwtAuth } from '../middleware/jwtAuth.js';
-import { createProjSite, listProjsSite, getProjSite, 
-} from '../controllers/projectSiteController.js';
+const express = require ('express');
+const { jwtAuth } = require ('../middleware/jwtAuth.js');
+const { createProjSite, listProjsSite, getProjSite, 
+} = require ('../controllers/projectSiteController.js');
 
 
 const router = express.Router();
 
-router.post('/', createProjSite);
-router.get('/',  listProjsSite);
-router.get('/:project_site_id',  getProjSite);
+router.post('/', jwtAuth, createProjSite);
+router.get('/', jwtAuth, listProjsSite);
+router.get('/:project_site_id', jwtAuth, getProjSite);
 
-export default router;
+module.exports = router;

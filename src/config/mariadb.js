@@ -1,7 +1,9 @@
-import mysql from 'mysql2/promise';
-import { env } from './env.js';
+// config/mariadb.js
+const mysql = require('mysql2/promise');
+const { env } = require('./env.js');
 
-export const mariadb = await mysql.createPool({
+// create pool ONCE (no async wrapper)
+const pool = mysql.createPool({
   host: env.db.host,
   port: env.db.port,
   user: env.db.user,
@@ -12,6 +14,38 @@ export const mariadb = await mysql.createPool({
   queueLimit: 0,
   enableKeepAlive: true,
 });
+
+module.exports = {
+  mariadb: pool
+};
+
+//---------------------
+//sir's  code
+// // config/mariadb.js
+// const mysql = require('mysql2/promise');
+// const { env } = require('./env.js');
+
+// async function initMariadb() {
+//   const pool = await mysql.createPool({
+//     host: env.db.host,
+//     port: env.db.port,
+//     user: env.db.user,
+//     password: env.db.pass,
+//     database: env.db.name,
+//     connectionLimit: 10,
+//     waitForConnections: true,
+//     queueLimit: 0,
+//     enableKeepAlive: true,
+//   });
+
+//   return pool;
+// }
+
+// // Export a promise that resolves to the pool
+// module.exports = {
+//   mariadb: initMariadb()
+// };
+
 
 
 /* MariaDB client commands

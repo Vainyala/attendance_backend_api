@@ -1,26 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
-// export async function createRegularization(data) {
-//   const {
-//    reg_id, org_short_name, mgr_id, reg_applied_for_date, reg_justification, reg_approval_status, 
-//     shortfall_hrs,mgr_comments
-//   } = data;
-
-//   const [result] = await mariadb.execute(
-//     `INSERT INTO employee_regularization (
-//     reg_id,  org_short_name, mgr_id, reg_applied_for_date, reg_justification,reg_approval_status,
-//      shortfall_hrs,mgr_comments
-//     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-//     [
-//      reg_id, org_short_name, mgr_id, reg_applied_for_date, reg_justification, reg_approval_status, 
-//     shortfall_hrs, mgr_comments
-//     ]
-//   );
-//   return result;
-// }
-
-
-export async function createRegularization(connection, data) {
+async function createRegularization(connection, data) {
   const { reg_id, emp_id, reg_applied_for_date, reg_justification,  reg_first_check_in,
     reg_last_check_out,
     shortfall_hrs } = data;
@@ -37,12 +17,12 @@ export async function createRegularization(connection, data) {
   return result;
 }
 
-export async function getRegularization() {
+async function getRegularization() {
   const [rows] = await mariadb.execute('SELECT * FROM employee_regularization');
   return rows;
 }
 
-export async function getRegularizationById(reg_id) {
+async function getRegularizationById(reg_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM employee_regularization WHERE reg_id = ? LIMIT 1',
     [reg_id]
@@ -50,7 +30,7 @@ export async function getRegularizationById(reg_id) {
   return rows[0] || null;
 }
 
-export async function getRegularizationByEmpId(emp_id) {
+async function getRegularizationByEmpId(emp_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM employee_regularization WHERE emp_id = ? LIMIT 1',
     [emp_id]
@@ -58,7 +38,7 @@ export async function getRegularizationByEmpId(emp_id) {
   return rows[0] || null;
 }
 
-export async function updateRegularization(reg_id, data) {
+async function updateRegularization(reg_id, data) {
  const {
     emp_id = null,
     reg_applied_for_date = null,
@@ -81,7 +61,7 @@ export async function updateRegularization(reg_id, data) {
   return result;
 }
 
-export async function updateRegularizationPartially(reg_id, data) {
+async function updateRegularizationPartially(reg_id, data) {
   const {
     emp_id = null,
     reg_applied_for_date = null,
@@ -108,10 +88,20 @@ export async function updateRegularizationPartially(reg_id, data) {
   return result;
 }
 
-export async function deleteRegularization(reg_id) {
+async function deleteRegularization(reg_id) {
   const [result] = await mariadb.execute(
     'DELETE FROM employee_regularization WHERE reg_id = ?',
     [reg_id]
   );
   return result;
+}
+
+module.exports = {
+  createRegularization,
+  getRegularization,
+  getRegularizationById,
+  getRegularizationByEmpId,
+  updateRegularization,
+  updateRegularizationPartially,
+  deleteRegularization
 }

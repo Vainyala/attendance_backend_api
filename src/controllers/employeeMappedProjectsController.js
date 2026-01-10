@@ -1,14 +1,14 @@
 
-import {
+const {
   createEmpMappedProjModel,
   listEmpMappedProjModel,
   getEmpMappedProjModel
-} from '../models/employeeMappedProjectsModel.js';
+} = require('../models/employeeMappedProjectsModel.js');
 
 /**
  * Create employee ↔ project mapping
  */
-export const createEmpMappedProj = async (req, res) => {
+const createEmpMappedProj = async (req, res) => {
   try {
     console.log('body:', req.body);
     const { emp_id, project_id, mapping_status = 'active' } = req.body;
@@ -48,7 +48,7 @@ export const createEmpMappedProj = async (req, res) => {
 /**
  * List all employee ↔ project mappings
  */
-export const listEmpMappedProj = async (req, res) => {
+const listEmpMappedProj = async (req, res) => {
   try {
     const data = await listEmpMappedProjModel();
 
@@ -68,7 +68,7 @@ export const listEmpMappedProj = async (req, res) => {
 /**
  * Get projects by employee ID (USED IN SYNC)
  */
-export const getEmpMappedProj = async (req, res) => {
+const getEmpMappedProj = async (req, res) => {
   try {
     const { emp_id } = req.params;
 
@@ -86,3 +86,10 @@ export const getEmpMappedProj = async (req, res) => {
     });
   }
 };
+
+
+module.exports = {
+  createEmpMappedProj,
+  listEmpMappedProj,
+  getEmpMappedProj
+}

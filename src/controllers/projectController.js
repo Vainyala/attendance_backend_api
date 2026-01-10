@@ -1,4 +1,4 @@
-import {
+const {
   createProject,
   getProjects,
  // getProjectById,
@@ -6,13 +6,13 @@ import {
   updateProject,
   updateProjectPartially,
   deleteProject
-} from '../models/projectModel.js';
-import { ok, badRequest, notFound, serverError } from '../utils/response.js';
-import { auditLog } from '../audit/auditLogger.js';
-import { errorLog } from '../audit/errorLogger.js';
+} = require('../models/projectModel.js');
+const { ok, badRequest, notFound, serverError } = require( '../utils/response.js');
+const { auditLog } = require( '../audit/auditLogger.js');
+const { errorLog } = require( '../audit/errorLogger.js');
 
-import { mariadb } from '../config/mariadb.js';
-import SerialNumberGenerator from '../utils/serialGenerator.js';
+const { mariadb } = require( '../config/mariadb.js');
+const SerialNumberGenerator = require( '../utils/serialGenerator.js');
 
 /*
 POST {{base_url}}/api/v1/projects
@@ -26,8 +26,9 @@ Authorization: Bearer {{access_token}}
 }
 
 */
-export async function createProj(req, res) {
+ async function createProj(req, res) {
   const connection = await mariadb.getConnection();
+
   console.log("body:", req.body);
 
   try {
@@ -101,7 +102,7 @@ GET {{base_url}}/api/v1/projects
 Authorization: Bearer {{access_token}}
 
 */
-export async function listProjs(req, res) {
+async function listProjs(req, res) {
   try {
     const projects = await getProjects();
     return ok(res, projects);
@@ -130,13 +131,13 @@ Authorization: Bearer {{access_token}}
 // }
 
 
-export async function getProj(req, res) {
+async function getProj(req, res) {
    console.log("body:", req.body);
   const { project_id } = req.params;
 
   try {
     const row = await getProjectWithSiteById(project_id);
-
+console.log("body:", req.body);
     if (!row) {
       return notFound(res, 'Employee Project not found');
     }
@@ -182,7 +183,7 @@ here should pass all fields names and into that update can do
 }
 
 */
-export async function updateProj(req, res) {
+async function updateProj(req, res) {
   const { project_id } = req.params;
   try {
     await updateProject(project_id, req.body);
@@ -204,7 +205,7 @@ into this can update one or all field can change partially
 }
 
 */
-export async function updateProjPartially(req, res) {
+async function updateProjPartially(req, res) {
   console.log("body:", req.body);
   const { project_id } = req.params;
   try {
@@ -223,7 +224,7 @@ DELETE {{base_url}}/api/v1/projects/PRJ001
 Authorization: Bearer {{access_token}}
 
 */
-export async function deleteProj(req, res) {
+async function deleteProj(req, res) {
   const { project_id } = req.params;
   try {
     await deleteProject(project_id);
@@ -233,4 +234,13 @@ export async function deleteProj(req, res) {
     await errorLog({ err, req, context: { project_id } });
     return serverError(res);
   }
+}
+
+module.exports = {
+  createProj,
+  getProj,
+  listProjs,
+  updateProj,
+  deleteProj,
+  updateProjPartially
 }

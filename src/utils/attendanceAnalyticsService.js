@@ -1,10 +1,10 @@
-import { mariadb } from '../config/mariadb.js';
-import CalculateShortfallHrs from '../utils/calculateShortfall.js';
-import { getRegularizationByEmpId } from '../models/regularizationModel.js';
-import HolidayWeekend from '../utils/HolidayWeekend.js';
-import { getOrgShortNameFromEmp } from '../utils/getOrgShortNameFromEmp.js';
+const { mariadb } = require('../config/mariadb.js');
+const CalculateShortfallHrs = require('../utils/calculateShortfall.js');
+const { getRegularizationByEmpId } = require('../models/regularizationModel.js');
+const HolidayWeekend = require('../utils/HolidayWeekend.js');
+const { getOrgShortNameFromEmp } = require('../utils/getOrgShortNameFromEmp.js');
 
-export async function generateDailyAnalytics(emp_id, date) {
+async function generateDailyAnalytics(emp_id, date) {
   const conn = await mariadb.getConnection();
 
   try {
@@ -93,3 +93,6 @@ export async function generateDailyAnalytics(emp_id, date) {
   }
 }
 
+module.exports = {
+  generateDailyAnalytics
+}

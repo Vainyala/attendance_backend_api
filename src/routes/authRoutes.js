@@ -1,11 +1,12 @@
-import { Router } from 'express';
-import { login, logout, refresh } from '../controllers/authController.js';
-import { jwtAuth } from '../middleware/jwtAuth.js';
+// routes/authRoutes.js
+const express = require('express');
+const { login, logout, refresh } = require('../controllers/authController.js');
+const { jwtAuth } = require('../middleware/jwtAuth.js');
 
-const router = Router();
+const router = express.Router();
 
 router.post('/login', login);
 router.post('/logout', jwtAuth, logout);
 router.post('/refresh', jwtAuth, refresh);
 
-export default router;
+module.exports = router;

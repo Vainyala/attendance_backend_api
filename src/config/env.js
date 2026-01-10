@@ -1,6 +1,7 @@
-import 'dotenv/config';
+// config/env.js
+require('dotenv/config');
 
-export const env = {
+const env = {
   port: process.env.PORT || 3000,
   nodeEnv: process.env.NODE_ENV || 'attendancebackend_dev',
   db: {
@@ -18,3 +19,4 @@ export const env = {
   },
 };
 
+module.exports = { env };

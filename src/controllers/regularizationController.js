@@ -1,14 +1,14 @@
-import {createRegularization,getRegularization,
+const {createRegularization,getRegularization,
   getRegularizationById,getRegularizationByEmpId,
   updateRegularization,updateRegularizationPartially,
-  deleteRegularization } from '../models/regularizationModel.js';
-import { ok, badRequest, notFound, serverError } from '../utils/response.js';
-import { auditLog } from '../audit/auditLogger.js';
-import { errorLog } from '../audit/errorLogger.js';
-import { mariadb } from '../config/mariadb.js';
-import { getOrgShortNameFromEmp } from '../utils/getOrgShortNameFromEmp.js'
-import SerialNumberGenerator from '../utils/serialGenerator.js';
-import CalculateShortfallHrs from '../utils/calculateShortfall.js';
+  deleteRegularization } = require('../models/regularizationModel.js');
+const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
+const { auditLog } = require('../audit/auditLogger.js');
+const { errorLog } = require('../audit/errorLogger.js');
+const { mariadb } = require('../config/mariadb.js');
+const { getOrgShortNameFromEmp } = require('../utils/getOrgShortNameFromEmp.js')
+const SerialNumberGenerator = require('../utils/serialGenerator.js');
+const CalculateShortfallHrs = require('../utils/calculateShortfall.js');
 /*
 POST {{base_url}}/api/v1/regularization
 Authorization: Bearer {{access_token}}
@@ -23,9 +23,9 @@ Authorization: Bearer {{access_token}}
 }
 */
 
-
-export async function createReg(req, res) {
+async function createReg(req, res) {
   const connection = await mariadb.getConnection();
+
   let reg_id = null;   // ✅ DEFINE HERE
 
   console.log('req.body:', req.body);
@@ -103,7 +103,7 @@ GET {{base_url}}/api/v1/regularization
 Authorization: Bearer {{access_token}}
 
 */
-export async function listReg(req, res) {
+async function listReg(req, res) {
   try {
     const reg = await getRegularization();
     return ok(res, reg);
@@ -118,7 +118,8 @@ GET {{base_url}}/api/v1/regularization/REG2025120003
 Authorization: Bearer {{access_token}}
 
 */
-export async function getReg(req, res) {
+async function getReg(req, res) {
+  console.log('body:', req.body);
   const { reg_id } = req.params;
   try {
     const reg = await getRegularizationById(reg_id);
@@ -132,7 +133,7 @@ export async function getReg(req, res) {
 }
 
 
-export async function getRegByEmpId(req, res) {
+ async function getRegByEmpId(req, res) {
   const { emp_id } = req.params;
   try {
     const reg = await getRegularizationByEmpId(emp_id);
@@ -160,7 +161,7 @@ here should pass all fields names and into that update can do
 
 
 */
-export async function updateReg(req, res) {
+async function updateReg(req, res) {
   const { reg_id } = req.params;   // ✅ CORRECT
 
   console.log('update body:', req.body);
@@ -189,7 +190,7 @@ into this can update one or all field can change
 }
 
 */
-export async function updateRegPartially(req, res) {
+async function updateRegPartially(req, res) {
   const { reg_id } = req.params;
   console.log('error:', req.body)
 
@@ -214,7 +215,7 @@ DELETE {{base_url}}/api/v1/regularization/REG2025120003
 Authorization: Bearer {{access_token}}
 
 */
-export async function deleteReg(req, res) {
+async function deleteReg(req, res) {
   const { reg_id } = req.params;
   try {
     await deleteRegularization(reg_id);
@@ -230,4 +231,14 @@ export async function deleteReg(req, res) {
     await errorLog({ err, req, context: { reg_id } });
     return serverError(res);
   }
+}
+
+module.exports = {
+  createReg,
+  listReg,
+  getReg,
+  updateReg,
+  updateRegPartially,
+  deleteReg,
+  getRegByEmpId
 }

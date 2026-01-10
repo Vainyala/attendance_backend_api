@@ -1,16 +1,16 @@
-import {
+const {
   createShiftMaster,
   getShiftMaster,
   getShiftMasterById,
   updateShiftMaster,
   deleteShiftMaster
-} from '../models/shiftModel.js';
-import { ok, badRequest, notFound, serverError } from '../utils/response.js';
-import { auditLog } from '../audit/auditLogger.js';
-import { errorLog } from '../audit/errorLogger.js';
+} = require('../models/shiftModel.js');
+const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
+const { auditLog } = require('../audit/auditLogger.js');
+const { errorLog } = require('../audit/errorLogger.js');
 
-import { mariadb } from '../config/mariadb.js';
-import SerialNumberGenerator from '../utils/serialGenerator.js';
+const { mariadb } = require('../config/mariadb.js');
+const SerialNumberGenerator = require('../utils/serialGenerator.js');
 /*
 POST {{base_url}}/api/v1/shift
 Authorization: Bearer {{access_token}}
@@ -22,8 +22,9 @@ Authorization: Bearer {{access_token}}
 }
 
 */
-export async function createShift(req, res) {
-  const connection = await mariadb.getConnection();
+async function createShift(req, res) {
+ const connection = await mariadb.getConnection();
+
 
   console.log('req.body:', req.body);
 
@@ -89,7 +90,7 @@ GET {{base_url}}/api/v1/shift
 Authorization: Bearer {{access_token}}
 
 */
-export async function listShift(req, res) {
+async function listShift(req, res) {
   try {
     const sft = await getShiftMaster();
     return ok(res, sft);
@@ -104,7 +105,7 @@ GET {{base_url}}/api/v1/shift/M001
 Authorization: Bearer {{access_token}}
 
 */
-export async function getShift(req, res) {
+async function getShift(req, res) {
   const { shift_id } = req.params;
   try {
     const sft = await getShiftMasterById(shift_id);
@@ -127,7 +128,7 @@ Authorization: Bearer {{access_token}}
 }
 
 */
-export async function updateShift(req, res) {
+async function updateShift(req, res) {
   const { shift_id } = req.params;
   console.log('error:', shift_id)
 
@@ -147,7 +148,7 @@ DELETE {{base_url}}/api/v1/employee/EMP001
 Authorization: Bearer {{access_token}}
 
 */
-export async function deleteShift(req, res) {
+async function deleteShift(req, res) {
   const { shift_id } = req.params;
   try {
     await deleteShiftMaster(shift_id);
@@ -157,4 +158,13 @@ export async function deleteShift(req, res) {
     await errorLog({ err, req, context: { shift_id } });
     return serverError(res);
   }
+}
+
+
+module.exports = {
+  createShift,
+  listShift,
+  getShift,
+  updateShift,
+  deleteShift
 }

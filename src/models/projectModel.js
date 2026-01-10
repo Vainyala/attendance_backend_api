@@ -1,6 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
-export async function createProject(connection,data) {
+async function createProject(connection,data) {
   const {
     project_id, org_short_name, project_name, client_name, client_location,
     client_contact, mng_name, mng_email,
@@ -22,12 +22,12 @@ export async function createProject(connection,data) {
   return result;
 }
 
-export async function getProjects() {
+async function getProjects() {
   const [rows] = await mariadb.execute('SELECT * FROM project_master');
   return rows;
 }
 
-export async function getProjectById(project_id) {
+async function getProjectById(project_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM project_master WHERE project_id = ? LIMIT 1',
     [project_id]
@@ -35,7 +35,7 @@ export async function getProjectById(project_id) {
   return rows[0] || null;
 }
 
-export async function getProjectWithSiteById(project_id) {
+async function getProjectWithSiteById(project_id) {
   const [rows] = await mariadb.execute(
     `
     SELECT 
@@ -55,8 +55,7 @@ export async function getProjectWithSiteById(project_id) {
   return rows[0] || null;
 }
 
-
-export async function updateProject(project_id, data) {
+async function updateProject(project_id, data) {
   const {
     org_short_name = null, project_name = null, client_name= null, client_location= null,
     client_contact= null, mng_name= null,
@@ -81,7 +80,7 @@ export async function updateProject(project_id, data) {
   return result;
 }
 
-export async function updateProjectPartially(project_id, data) {
+async function updateProjectPartially(project_id, data) {
   const {
     org_short_name = null, project_name = null,client_name= null, client_location= null,
     client_contact= null,  mng_name= null,mng_email = null ,
@@ -108,11 +107,20 @@ export async function updateProjectPartially(project_id, data) {
   return result;
 }
 
-
-export async function deleteProject(project_id) {
+async function deleteProject(project_id) {
   const [result] = await mariadb.execute(
     'DELETE FROM project_master WHERE project_id = ?',
     [project_id]
   );
   return result;
+}
+
+module.exports = {
+  createProject,
+  getProjects,
+  getProjectById,
+  getProjectWithSiteById,
+  updateProjectPartially,
+  updateProject,
+  deleteProject
 }

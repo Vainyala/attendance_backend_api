@@ -1,18 +1,19 @@
-import {
+const {
   createProjectSite,
   getProjectsSite,
   getProjectSiteById,
 //   updateProject,
 //   updateProjectPartially,
 //   deleteProject
-} from '../models/projectSiteModel.js';
-import { ok, badRequest, notFound, serverError } from '../utils/response.js';
-import { auditLog } from '../audit/auditLogger.js';
-import { errorLog } from '../audit/errorLogger.js';
+} = require('../models/projectSiteModel.js');
+const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
+const { auditLog } = require('../audit/auditLogger.js');
+const { errorLog } = require('../audit/errorLogger.js');
 
-import { mariadb } from '../config/mariadb.js';
-import SerialNumberGenerator from '../utils/serialGenerator.js';
-import { getOrgShortNameFromProj } from '../utils/getOrgShortNameFromEmp.js';
+const { mariadb } = require('../config/mariadb.js');
+const SerialNumberGenerator = require('../utils/serialGenerator.js');
+const { getOrgShortNameFromProj } = require('../utils/getOrgShortNameFromEmp.js');
+const { get } = require('../routes/shiftRoutes');
 
 /*
 POST {{base_url}}/api/v1/projects
@@ -26,8 +27,9 @@ Authorization: Bearer {{access_token}}
 }
 
 */
-export async function createProjSite(req, res) {
-  const connection = await mariadb.getConnection();
+async function createProjSite(req, res) {
+ const connection = await mariadb.getConnection();
+
   console.log("body:", req.body);
 
   try {
@@ -100,7 +102,7 @@ GET {{base_url}}/api/v1/projects
 Authorization: Bearer {{access_token}}
 
 */
-export async function listProjsSite(req, res) {
+async function listProjsSite(req, res) {
   try {
     const projectsSite = await getProjectsSite();
     return ok(res, projectsSite);
@@ -115,7 +117,7 @@ GET {{base_url}}/api/v1/projects/PRJ001
 Authorization: Bearer {{access_token}}
 
 */
-export async function getProjSite(req, res) {
+ async function getProjSite(req, res) {
     console.log('body:', req.body);
   const { project_site_id } = req.params;
   try {
@@ -127,4 +129,10 @@ export async function getProjSite(req, res) {
     await errorLog({ err, req, context: { project_site_id } });
     return serverError(res);
   }
+}
+
+module.exports = {
+  createProjSite,
+  listProjsSite,
+  getProjSite
 }

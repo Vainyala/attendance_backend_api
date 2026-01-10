@@ -1,11 +1,11 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
 /**
  * Get org_short_name from emp_id
  * Extracts org_short_name from employee record
  */
 
-export async function getOrgShortNameFromEmp(connection, emp_id) {
+async function getOrgShortNameFromEmp(connection, emp_id) {
   if (!emp_id || typeof emp_id !== 'string') {
     throw new Error('Invalid emp_id');
   }
@@ -29,7 +29,7 @@ export async function getOrgShortNameFromEmp(connection, emp_id) {
  * Extracts org_short_name from project record
  */
 
-export async function getOrgShortNameFromProj(connection, project_id) {
+async function getOrgShortNameFromProj(connection, project_id) {
   if (!project_id || typeof project_id !== 'string') {
     throw new Error('Invalid project_id');
   }
@@ -44,4 +44,9 @@ export async function getOrgShortNameFromProj(connection, project_id) {
   }
 
   return rows[0].org_short_name;
+}
+
+module.exports = {
+  getOrgShortNameFromEmp,
+  getOrgShortNameFromProj
 }

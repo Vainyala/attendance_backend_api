@@ -1,6 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
-export async function createAttendance(connection, data) {
+async function createAttendance(connection, data) {
   const {
     att_id, emp_id,  att_latitude, att_longitude,
     att_geofence_name, project_id, att_notes, att_status, verification_type,
@@ -23,13 +23,13 @@ export async function createAttendance(connection, data) {
   return result;
 }
 
-export async function getAttendance() {
+async function getAttendance() {
   const [rows] = await mariadb.execute('SELECT * FROM employee_attendance');
   return rows;
 }
 
 
-export async function getAttendanceByEmpId(emp_id) {
+async function getAttendanceByEmpId(emp_id) {
   const [rows] = await mariadb.execute(
     `
     SELECT *
@@ -43,7 +43,7 @@ export async function getAttendanceByEmpId(emp_id) {
 }
 
 
-export async function getAttendanceById(att_id) {
+async function getAttendanceById(att_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM employee_attendance WHERE att_id = ? LIMIT 1',
     [att_id]
@@ -51,9 +51,7 @@ export async function getAttendanceById(att_id) {
   return rows[0] || null;
 }
 
-
-
-export async function getAttendanceByDateRange(from_date, to_date) {
+async function getAttendanceByDateRange(from_date, to_date) {
   const [rows] = await mariadb.execute(
     `
     SELECT *
@@ -70,7 +68,7 @@ export async function getAttendanceByDateRange(from_date, to_date) {
   return rows;
 }
 
-export async function getAttendanceWithSiteById(att_id) {
+async function getAttendanceWithSiteById(att_id) {
   const [rows] = await mariadb.execute(
     `
     SELECT 
@@ -88,4 +86,13 @@ export async function getAttendanceWithSiteById(att_id) {
   );
 
   return rows[0] || null;
+}
+
+module.exports = {
+  createAttendance,
+  getAttendance,
+  getAttendanceByDateRange,
+  getAttendanceByEmpId,
+  getAttendanceById,
+  getAttendanceWithSiteById
 }
