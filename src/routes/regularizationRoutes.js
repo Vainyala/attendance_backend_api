@@ -1,17 +1,17 @@
-import express from 'express';
-import { jwtAuth } from '../middleware/jwtAuth.js';
-import { createReg,  listReg, getReg, getRegByEmpId, updateReg, updateRegPartially, deleteReg
- } from '../controllers/regularizationController.js';
+const express = require('express');
+const { jwtAuth } = require('../middleware/jwtAuth.js');
+const { createReg,  listReg, getReg, getRegByEmpId, updateReg, updateRegPartially, deleteReg
+ } = require('../controllers/regularizationController.js');
 
 
 const router = express.Router();
 
-router.post('/',  createReg);
-router.get('/',  listReg);
-router.get('/:emp_id',  getRegByEmpId);
-router.get('/:reg_id',  getReg);
-router.put('/:reg_id',  updateReg);
-router.patch('/:reg_id', updateRegPartially); 
-router.delete('/:reg_id',  deleteReg);
+router.post('/', jwtAuth, createReg);
+router.get('/', jwtAuth, listReg);
+router.get('/:emp_id', jwtAuth, getRegByEmpId);
+router.get('/:reg_id', jwtAuth, getReg);
+router.put('/:reg_id', jwtAuth, updateReg);
+router.patch('/:reg_id', jwtAuth, updateRegPartially); 
+router.delete('/:reg_id', jwtAuth, deleteReg);
 
-export default router;
+module.exports = router;

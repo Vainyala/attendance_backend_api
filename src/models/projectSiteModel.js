@@ -1,6 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
-export async function createProjectSite(connection,data) {
+async function createProjectSite(connection,data) {
   const {
     project_site_id, project_id,
   project_site_name, project_site_lat, project_site_long
@@ -19,15 +19,21 @@ export async function createProjectSite(connection,data) {
   return result;
 }
 
-export async function getProjectsSite() {
+async function getProjectsSite() {
   const [rows] = await mariadb.execute('SELECT * FROM project_site_mapping');
   return rows;
 }
 
-export async function getProjectSiteById(project_site_id) {
+async function getProjectSiteById(project_site_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM project_site_mapping WHERE project_site_id = ? LIMIT 1',
     [project_site_id]
   );
   return rows[0] || null;
+}
+
+module.exports = {
+  createProjectSite,
+  getProjectSiteById,
+  getProjectsSite,
 }

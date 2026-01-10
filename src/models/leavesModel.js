@@ -1,26 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require( '../config/mariadb.js');
 
-// export async function createRegularization(data) {
-//   const {
-//    leave_id, org_short_name, mgr_id, reg_applied_for_date, reg_justification, reg_approval_status, 
-//     shortfall_hrs,mgr_comments
-//   } = data;
-
-//   const [result] = await mariadb.execute(
-//     `INSERT INTO employee_regularization (
-//     leave_id,  org_short_name, mgr_id, reg_applied_for_date, reg_justification,reg_approval_status,
-//      shortfall_hrs,mgr_comments
-//     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-//     [
-//      leave_id, org_short_name, mgr_id, reg_applied_for_date, reg_justification, reg_approval_status, 
-//     shortfall_hrs, mgr_comments
-//     ]
-//   );
-//   return result;
-// }
-
-
-export async function createLeaves(connection, data) {
+async function createLeaves(connection, data) {
     const { leave_id, emp_id, leave_from_date,
         leave_to_date,
         leave_type,
@@ -45,12 +25,12 @@ export async function createLeaves(connection, data) {
     return result;
 }
 
-export async function getLeaves() {
+async function getLeaves() {
     const [rows] = await mariadb.execute('SELECT * FROM employee_leaves');
     return rows;
 }
 
-export async function getLeavesById(leave_id) {
+async function getLeavesById(leave_id) {
     const [rows] = await mariadb.execute(
         'SELECT * FROM employee_leaves WHERE leave_id = ? LIMIT 1',
         [leave_id]
@@ -58,7 +38,7 @@ export async function getLeavesById(leave_id) {
     return rows[0] || null;
 }
 
-export async function getLeavesByEmpId(emp_id) {
+async function getLeavesByEmpId(emp_id) {
     const [rows] = await mariadb.execute(
         'SELECT * FROM employee_leaves WHERE emp_id = ? LIMIT 1',
         [emp_id]
@@ -66,7 +46,7 @@ export async function getLeavesByEmpId(emp_id) {
     return rows[0] || null;
 }
 
-export async function updateLeaves(leave_id, data) {
+async function updateLeaves(leave_id, data) {
     const {
         emp_id = null,
         leave_from_date = null,
@@ -89,7 +69,7 @@ export async function updateLeaves(leave_id, data) {
     return result;
 }
 
-export async function updateLeavesPartially(leave_id, data) {
+async function updateLeavesPartially(leave_id, data) {
     const {
         emp_id = null,
         leave_from_date = null,
@@ -114,11 +94,19 @@ export async function updateLeavesPartially(leave_id, data) {
 
     return result;
 }
-
-export async function deleteLeaves(leave_id) {
+async function deleteLeaves(leave_id) {
     const [result] = await mariadb.execute(
         'DELETE FROM employee_leaves WHERE leave_id = ?',
         [leave_id]
     );
     return result;
+}
+
+module.exports = {
+createLeaves,
+getLeaves,
+getLeavesByEmpId,
+updateLeaves,
+updateLeavesPartially,
+deleteLeaves
 }

@@ -1,6 +1,6 @@
-import { ok, serverError } from '../utils/response.js';
-import { mariadb } from '../config/mariadb.js';
-import { mongo } from '../config/mongodb.js';
+const { ok, serverError } = require('../utils/response.js');
+const { mariadb } = require('../config/mariadb.js');
+const { mongo } = require('../config/mongodb.js');
 
 
 /*
@@ -40,7 +40,7 @@ When everything is healthy , then send JSON response:
 
 
 */
-export async function healthCheck(req, res) {
+async function healthCheck(req, res) {
   try {
     const status = { service: 'attendancebackend', timestamp: new Date().toISOString() };
 
@@ -67,3 +67,6 @@ export async function healthCheck(req, res) {
     return serverError(res);
   }
 }
+
+
+module.exports = {healthCheck};

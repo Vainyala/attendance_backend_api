@@ -1,6 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
-export async function createShiftMaster(connection,data) {
+async function createShiftMaster(connection,data) {
   const {
     shift_id, org_short_name, shift_name, shift_start_time, shift_end_time
   } = data;
@@ -16,12 +16,12 @@ export async function createShiftMaster(connection,data) {
   return result;
 }
 
-export async function getShiftMaster() {
+async function getShiftMaster() {
   const [rows] = await mariadb.execute('SELECT * FROM shift_master');
   return rows;
 }
 
-export async function getShiftMasterById(shift_id) {
+async function getShiftMasterById(shift_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM shift_master WHERE shift_id = ? LIMIT 1',
     [shift_id]
@@ -29,7 +29,7 @@ export async function getShiftMasterById(shift_id) {
   return rows[0] || null;
 }
 
-export async function updateShiftMaster(shift_id, data) {
+async function updateShiftMaster(shift_id, data) {
   const {
     org_short_name = null, shift_name = null, shift_start_time = null, shift_end_time = null
   } = data;
@@ -46,10 +46,18 @@ export async function updateShiftMaster(shift_id, data) {
   return result;
 }
 
-export async function deleteShiftMaster(shift_id) {
+async function deleteShiftMaster(shift_id) {
   const [result] = await mariadb.execute(
     'DELETE FROM shift_master WHERE shift_id = ?',
     [shift_id]
   );
   return result;
+}
+
+module.exports = {
+  createShiftMaster,
+  getShiftMaster,
+  getShiftMasterById,
+  updateShiftMaster,
+  deleteShiftMaster
 }

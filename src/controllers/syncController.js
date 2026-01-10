@@ -1,12 +1,12 @@
-import { getEmployeeById } from '../models/employeeModel.js';
-import { getEmpMappedProjModel } from '../models/employeeMappedProjectsModel.js';
-import { getAttSummary } from '../models/attendanceAnalyticsModel.js';
-import { getRegularizationByEmpId } from '../models/regularizationModel.js';
-import { generateDailyAnalytics } from '../utils/attendanceAnalyticsService.js';
+const { getEmployeeById } = require('../models/employeeModel.js');
+const { getEmpMappedProjModel } = require('../models/employeeMappedProjectsModel.js');
+const { getAttSummary } = require('../models/attendanceAnalyticsModel.js');
+const { getRegularizationByEmpId } = require('../models/regularizationModel.js');
+const { generateDailyAnalytics } = require('../utils/attendanceAnalyticsService.js');
+const { getLeavesByEmpId } = require('../models/leavesModel.js');
 
-export const manualSync = async (req, res) => {
-  console.log('body:', req.body);
 
+const manualSync = async (req, res) => {
   try {
     const { emp_id } = req.body;
 
@@ -20,7 +20,7 @@ export const manualSync = async (req, res) => {
     const now = new Date();
     const year = now.getFullYear();
 
-    // 🔹 Month range (FIX)
+    // ✅ Month start & end
     const monthStart = new Date(year, now.getMonth(), 1)
       .toISOString()
       .slice(0, 10);
@@ -29,25 +29,31 @@ export const manualSync = async (req, res) => {
       .toISOString()
       .slice(0, 10);
 
-    // ✅ 1. Employee
+    // ✅ 1. Employee details
     const employee = await getEmployeeById(emp_id);
 
-    // ✅ 2. Projects
+    // Optional safety check
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    // ✅ 2. Mapped projects
     const projects = await getEmpMappedProjModel(emp_id);
 
-    // 🔥 3. GENERATE ANALYTICS FOR TODAY
+    // ✅ 3. Generate today's analytics
     const today = now.toISOString().slice(0, 10);
     await generateDailyAnalytics(emp_id, today);
 
-    // ✅ 4. READ ANALYTICS
-    const summary = await getAttSummary(
-      emp_id,
-      monthStart,
-      monthEnd
-    );
+    // ✅ 4. Attendance summary
+    const summary = await getAttSummary(emp_id, monthStart, monthEnd);
 
     // ✅ 5. Regularization
     const regularization = await getRegularizationByEmpId(emp_id);
+    // ✅ 6. Leaves
+    const leaves = await getLeavesByEmpId(emp_id);
 
     return res.status(200).json({
       success: true,
@@ -55,7 +61,8 @@ export const manualSync = async (req, res) => {
         employee,
         projects,
         attendance_summary: summary,
-        regularization
+        regularization,
+        leaves
       }
     });
 
@@ -67,3 +74,5 @@ export const manualSync = async (req, res) => {
     });
   }
 };
+
+module.exports = manualSync;

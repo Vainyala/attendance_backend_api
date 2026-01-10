@@ -12,12 +12,14 @@
 
 */
 
-import { mongo } from '../config/mongodb.js';
-import { nowISO } from '../utils/time.js';
+// src/audit/auditLogger.js
+const { mongo } = require('../config/mongodb.js');
+const { nowISO } = require('../utils/time.js');
 
-export async function auditLog({ action, actor, req, meta = {} }) {
+async function auditLog({ action, actor, req, meta = {} }) {
   try {
-    await mongo.audit.insertOne({
+    const mongoConn = await mongo; // mongo is a promise
+    await mongoConn.audit.insertOne({
       ts: nowISO(),
       action,
       actor,
@@ -30,3 +32,5 @@ export async function auditLog({ action, actor, req, meta = {} }) {
     // fail-silent to avoid blocking core flow
   }
 }
+
+module.exports = { auditLog };

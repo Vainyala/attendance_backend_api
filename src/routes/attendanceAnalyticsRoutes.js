@@ -1,10 +1,11 @@
-import express from 'express';
-import { getSummary, generateAnalytics } from '../controllers/attendanceAnalyticsController.js';
-import { getDailyAnalytics } from '../models/attendanceAnalyticsModel.js';
+const express = require ('express');
+const { getSummary, generateAnalytics } = require ('../controllers/attendanceAnalyticsController.js');
+const { getDailyAnalytics } = require ('../models/attendanceAnalyticsModel.js');
+const { jwtAuth } = require ('../middleware/jwtAuth.js');
 const router = express.Router();
 
-router.post('/generate', generateAnalytics);
-router.get('/summary', getSummary);
-router.get('/daily', getDailyAnalytics);
+router.post('/generate', jwtAuth, generateAnalytics);
+router.get('/summary', jwtAuth, getSummary);
+router.get('/daily', jwtAuth, getDailyAnalytics);
 
-export default router;
+module.exports = router;

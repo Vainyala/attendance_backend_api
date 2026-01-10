@@ -1,6 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
-export async function getAttSummary(emp_id, startDate, endDate) {
+ async function getAttSummary(emp_id, startDate, endDate) {
   const [rows] = await mariadb.query(
     `SELECT
       COUNT(*) AS days,
@@ -20,7 +20,7 @@ export async function getAttSummary(emp_id, startDate, endDate) {
   return rows[0];
 }
 
-export const getDailyAnalytics = async (req, res) => {
+const getDailyAnalytics = async (req, res) => {
   const { emp_id, date } = req.query;
 
   const [rows] = await mariadb.query(
@@ -40,4 +40,7 @@ export const getDailyAnalytics = async (req, res) => {
   res.json({ success: true, data: rows[0] || null });
 };
 
-
+module.exports = {
+  getAttSummary,
+  getDailyAnalytics,
+}

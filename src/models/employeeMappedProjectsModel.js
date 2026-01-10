@@ -1,9 +1,9 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
 /**
  * Insert mapping
  */
-export async function createEmpMappedProjModel(data) {
+async function createEmpMappedProjModel(data) {
   const { emp_id, project_id, mapping_status } = data;
 
   if (!emp_id || !project_id) {
@@ -24,7 +24,7 @@ export async function createEmpMappedProjModel(data) {
  * List all mappings
  */
 
-export async function listEmpMappedProjModel() {
+async function listEmpMappedProjModel() {
   const [rows] = await mariadb.execute(
     `SELECT * FROM employee_mapped_projects`
   );
@@ -35,7 +35,7 @@ export async function listEmpMappedProjModel() {
 /**
  * Get active projects by employee ID (JOIN)
  */
-export async function getEmpMappedProjModel(emp_id) {
+async function getEmpMappedProjModel(emp_id) {
   const [rows] = await mariadb.execute(
     `
     SELECT 
@@ -50,4 +50,10 @@ export async function getEmpMappedProjModel(emp_id) {
   );
 
   return rows;
+}
+
+module.exports = {
+  createEmpMappedProjModel,
+  listEmpMappedProjModel,
+  getEmpMappedProjModel,
 }

@@ -1,6 +1,6 @@
-import { getAttSummary } from '../models/attendanceAnalyticsModel.js';
-import { generateDailyAnalytics } from '../utils/attendanceAnalyticsService.js';
-// import { mariadb } from '../config/mariadb.js';
+const { getAttSummary } = require('../models/attendanceAnalyticsModel.js');
+const { generateDailyAnalytics } = require('../utils/attendanceAnalyticsService.js');
+// const { mariadb } = require('../config/mariadb.js');
 
 function getDateRange(type, date) {
   const today = date ? new Date(date) : new Date();
@@ -34,7 +34,7 @@ function getDateRange(type, date) {
 
 
 
-export const getSummary = async (req, res) => {
+const getSummary = async (req, res) => {
   console.log("Employee data called: ", req.params);
   try {
     const { emp_id, type, date } = req.query;
@@ -53,7 +53,7 @@ export const getSummary = async (req, res) => {
   }
 };
 
-export const generateAnalytics = async (req, res) => {
+const generateAnalytics = async (req, res) => {
   const { emp_id, org_id, date } = req.body;
 
   await generateDailyAnalytics(emp_id, org_id, date);
@@ -65,3 +65,8 @@ export const generateAnalytics = async (req, res) => {
 };
 
 
+module.exports = {
+  getSummary,
+  generateAnalytics,
+  getDateRange
+}

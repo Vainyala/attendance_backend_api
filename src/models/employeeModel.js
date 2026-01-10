@@ -1,6 +1,6 @@
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
-export async function createEmployee(connection, data) {
+async function createEmployee(connection, data) {
   const {
     emp_id, org_short_name, emp_name, emp_email,
     emp_role, emp_department, emp_phone, emp_status
@@ -21,12 +21,12 @@ export async function createEmployee(connection, data) {
 }
 
 
-export async function getEmployee() {
+async function getEmployee() {
   const [rows] = await mariadb.execute('SELECT * FROM employee_master');
   return rows;
 }
 
-export async function getEmployeeById(emp_id) {
+async function getEmployeeById(emp_id) {
   const [rows] = await mariadb.execute(
     'SELECT * FROM employee_master WHERE emp_id = ? LIMIT 1',
     [emp_id]
@@ -34,7 +34,7 @@ export async function getEmployeeById(emp_id) {
   return rows[0] || null;
 }
 
-export async function updateEmployee(emp_id, data) {
+async function updateEmployee(emp_id, data) {
  const {
    org_short_name = null, emp_name= null, emp_email= null, emp_role= null, emp_department= null,
     emp_phone= null, emp_status= null
@@ -54,7 +54,7 @@ export async function updateEmployee(emp_id, data) {
   return result;
 }
 
-export async function updateEmployeePartially(emp_id, data) {
+async function updateEmployeePartially(emp_id, data) {
   const {
     org_short_name = null,
     emp_name = null,
@@ -90,12 +90,19 @@ export async function updateEmployeePartially(emp_id, data) {
   return result;
 }
 
-
-
-export async function deleteEmployee(emp_id) {
+async function deleteEmployee(emp_id) {
   const [result] = await mariadb.execute(
     'DELETE FROM employee_master WHERE emp_id = ?',
     [emp_id]
   );
   return result;
+}
+
+module.exports = {
+  createEmployee,
+  getEmployeeById,
+  getEmployee,
+  updateEmployee,
+  updateEmployeePartially,
+  deleteEmployee
 }

@@ -36,4 +36,4 @@ class HolidayWeekend {
   }
 }
 
-export default HolidayWeekend;
+module.exports = HolidayWeekend;

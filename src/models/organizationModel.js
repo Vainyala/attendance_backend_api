@@ -1,11 +1,11 @@
 // src/models/organizationModel.js
-import { mariadb } from '../config/mariadb.js';
+const { mariadb } = require('../config/mariadb.js');
 
 /**
  * Create a new organization
  * org_id is now auto-generated, so it comes from the controller
  */
-export async function createOrganization({
+async function createOrganization({
   org_id, org_name, org_short_name, org_email,office_working_start_day,
   office_working_end_day,office_start_hrs,office_end_hrs,working_hrs_in_number
 }) {
@@ -30,7 +30,7 @@ export async function createOrganization({
 /**
  * Get all organizations
  */
-export async function getOrganizations() {
+async function getOrganizations() {
   const [rows] = await mariadb.execute('SELECT * FROM organization_master'
   );
   return rows;
@@ -39,7 +39,7 @@ export async function getOrganizations() {
 /**
  * Get organization by ID
  */
-export async function getOrganizationById(org_id) {
+async function getOrganizationById(org_id) {
   if (!org_id) {
     throw new Error('org_id is required');
   }
@@ -55,7 +55,7 @@ export async function getOrganizationById(org_id) {
 /**
  * Update organization by ID
  */
-export async function updateOrganization(org_id,
+async function updateOrganization(org_id,
    { org_name, org_short_name, org_email
 
     }) {
@@ -97,7 +97,7 @@ export async function updateOrganization(org_id,
 /**
  * Delete organization by ID
  */
-export async function deleteOrganization(org_id) {
+async function deleteOrganization(org_id) {
   if (!org_id) {
     throw new Error('org_id is required');
   }
@@ -107,4 +107,12 @@ export async function deleteOrganization(org_id) {
     [org_id]
   );
   return result;
+}
+
+module.exports = {
+  createOrganization,
+  getOrganizationById,
+  getOrganizations,
+  updateOrganization,
+  deleteOrganization
 }

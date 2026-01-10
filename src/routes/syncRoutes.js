@@ -1,8 +1,9 @@
-import express from 'express';
-import { manualSync } from '../controllers/syncController.js';
+const express = require('express');
+const manualSync = require('../controllers/syncController.js');
+const { jwtAuth } = require('../middleware/jwtAuth.js');
 
 const router = express.Router();
 
-router.post('/manual', manualSync);
+router.post('/manual', jwtAuth, manualSync);
 
-export default router;
+module.exports = router;

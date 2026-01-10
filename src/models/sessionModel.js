@@ -1,13 +1,19 @@
-import { mongo } from '../config/mongodb.js';
+// src/models/sessionModel.js
+const { mongo } = require('../config/mongodb.js');
 
-const sessions = mongo.db.collection('sessions');
-
-export async function findActiveSession(emp_id) {
-  return await sessions.findOne({ emp_id, status: 'ACTIVE' });
+async function getSessionsCollection() {
+  const mongoConn = await mongo; // mongo is a promise
+  return mongoConn.db.collection('sessions');
 }
 
-export async function createSession({ emp_id, email_id, jti, refreshToken, expiresAt }) {
-  return await sessions.insertOne({
+async function findActiveSession(emp_id) {
+  const sessions = await getSessionsCollection();
+  return sessions.findOne({ emp_id, status: 'ACTIVE' });
+}
+
+async function createSession({ emp_id, email_id, jti, refreshToken, expiresAt }) {
+  const sessions = await getSessionsCollection();
+  return sessions.insertOne({
     emp_id,
     email_id,
     jti,
@@ -18,12 +24,13 @@ export async function createSession({ emp_id, email_id, jti, refreshToken, expir
   });
 }
 
-export async function deactivateSession(jti) {
-  return await sessions.updateOne({ jti }, { $set: { status: 'INACTIVE' } });
+async function deactivateSession(jti) {
+  const sessions = await getSessionsCollection();
+  return sessions.updateOne({ jti }, { $set: { status: 'INACTIVE' } });
 }
 
 /*
-// sessions document shape
+sessions document shape:
 {
   "_id": "uuid-or-objectid",
   "emp_id": "EMP001",
@@ -35,3 +42,10 @@ export async function deactivateSession(jti) {
   "refresh_token": "hashed-refresh-token"
 }
 */
+
+module.exports = {
+  findActiveSession,
+  createSession,
+  deactivateSession
+};
+
