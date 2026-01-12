@@ -4,7 +4,7 @@ const {
   listEmpMappedProjModel,
   getEmpMappedProjModel
 } = require('../models/employeeMappedProjectsModel.js');
-
+const { formatProjects } = require('../utils/projectFormatter');
 /**
  * Create employee ↔ project mapping
  */
@@ -30,9 +30,11 @@ const createEmpMappedProj = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Employee project mapped successfully',
-      data: { emp_id,
-      project_id,
-      mapping_status, result}
+      data: {
+        emp_id,
+        project_id,
+        mapping_status, result
+      }
     });
 
   } catch (error) {
@@ -72,20 +74,25 @@ const getEmpMappedProj = async (req, res) => {
   try {
     const { emp_id } = req.params;
 
-    const projects = await getEmpMappedProjModel(emp_id);
+    const rows = await getEmpMappedProjModel(emp_id);
 
-    res.status(200).json({
+    if (!rows || rows.length === 0) {
+      return notFound(res, 'Employee Project not found');
+    }
+
+    const response = formatProjects(rows);
+
+    return res.status(200).json({
       success: true,
-      data: projects
+      data: response
     });
-  } catch (error) {
-    console.error('getEmpMappedProj error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch employee projects'
-    });
+
+  } catch (err) {
+    console.error('getEmpMappedProj error:', err);
+    return serverError(res);
   }
 };
+
 
 
 module.exports = {
