@@ -39,10 +39,15 @@ async function getEmpMappedProjModel(emp_id) {
   const [rows] = await mariadb.execute(
     `
     SELECT 
-      p.*
+      p.*,
+      psm.project_site_name,
+      psm.project_site_lat,
+      psm.project_site_long
     FROM employee_mapped_projects emp
     JOIN project_master p 
       ON emp.project_id = p.project_id
+    LEFT JOIN project_site_mapping psm
+      ON p.project_id = psm.project_id
     WHERE emp.emp_id = ?
       AND emp.mapping_status = 'active'
     `,
@@ -51,6 +56,7 @@ async function getEmpMappedProjModel(emp_id) {
 
   return rows;
 }
+
 
 module.exports = {
   createEmpMappedProjModel,

@@ -1,18 +1,18 @@
 const {
   createProject,
   getProjects,
- // getProjectById,
- getProjectWithSiteById,
+  // getProjectById,
+  getProjectWithSiteById,
   updateProject,
   updateProjectPartially,
   deleteProject
 } = require('../models/projectModel.js');
-const { ok, badRequest, notFound, serverError } = require( '../utils/response.js');
-const { auditLog } = require( '../audit/auditLogger.js');
-const { errorLog } = require( '../audit/errorLogger.js');
-
-const { mariadb } = require( '../config/mariadb.js');
-const SerialNumberGenerator = require( '../utils/serialGenerator.js');
+const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
+const { auditLog } = require('../audit/auditLogger.js');
+const { errorLog } = require('../audit/errorLogger.js');
+const { formatProjects } = require('../utils/projectFormatter');
+const { mariadb } = require('../config/mariadb.js');
+const SerialNumberGenerator = require('../utils/serialGenerator.js');
 
 /*
 POST {{base_url}}/api/v1/projects
@@ -26,7 +26,7 @@ Authorization: Bearer {{access_token}}
 }
 
 */
- async function createProj(req, res) {
+async function createProj(req, res) {
   const connection = await mariadb.getConnection();
 
   console.log("body:", req.body);
@@ -130,48 +130,36 @@ Authorization: Bearer {{access_token}}
 //   }
 // }
 
-
 async function getProj(req, res) {
-   console.log("body:", req.body);
   const { project_id } = req.params;
 
   try {
     const row = await getProjectWithSiteById(project_id);
-console.log("body:", req.body);
+
     if (!row) {
-      return notFound(res, 'Employee Project not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Employee Project not found'
+      });
     }
 
-    // 🔹 reshape response
-    const response = {
-      project_id: row.project_id,
-      project_name: row.project_name,
-      project_site: {
-        project_site_name: row.project_site_name,
-        project_site_lat: row.project_site_lat,
-        project_site_long: row.project_site_long
-      },
-      project_techstack: row.project_techstack,
-      project_assigned_date: row.project_assigned_date,
-      project_description: row.project_description,
-      client_contact: row.client_contact,
-      client_name: row.client_name,
-      client_location: row.client_location,
-      mng_name: row.mng_name,
-      mng_email: row.mng_email,
-      mng_contact: row.mng_contact,
-      created_at: row.created_at,
-      updated_at: row.updated_at
-    };
+    // 🔹 reuse formatter (single → array → single)
+    const response = formatProjects([row])[0];
 
-    return ok(res, response);
+    return res.status(200).json({
+      success: true,
+      data: response
+    });
 
   } catch (err) {
-     console.log("error:", err);
-    await errorLog({ err, req, context: { project_id } });
-    return serverError(res);
+    console.log("error:", err);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch project'
+    });
   }
 }
+
 
 /*
 PUT {{base_url}}/api/v1/projects/PRJ001
