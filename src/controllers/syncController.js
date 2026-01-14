@@ -4,6 +4,7 @@ const { getAttSummary } = require('../models/attendanceAnalyticsModel.js');
 const { getRegularizationByEmpId } = require('../models/regularizationModel.js');
 const { generateDailyAnalytics } = require('../utils/attendanceAnalyticsService.js');
 const { getLeavesByEmpId } = require('../models/leavesModel.js');
+const { getTasksByEmpId } = require('../models/timesheetModel.js');
 const { formatProjects } = require('../utils/projectFormatter');
 
 const manualSync = async (req, res) => {
@@ -42,7 +43,7 @@ const manualSync = async (req, res) => {
 
     // ✅ 2. Mapped projects
     const projectRows = await getEmpMappedProjModel(emp_id);
- const projects = formatProjects(projectRows);
+    const projects = formatProjects(projectRows);
     // ✅ 3. Generate today's analytics
     const today = now.toISOString().slice(0, 10);
     await generateDailyAnalytics(emp_id, today);
@@ -54,7 +55,8 @@ const manualSync = async (req, res) => {
     const regularization = await getRegularizationByEmpId(emp_id);
     // ✅ 6. Leaves
     const leaves = await getLeavesByEmpId(emp_id);
-
+    // ✅ 7. Timesheet or tasks
+    const tasks = await getTasksByEmpId(emp_id);
     return res.status(200).json({
       success: true,
       data: {
@@ -62,7 +64,8 @@ const manualSync = async (req, res) => {
         projects,
         attendance_summary: summary,
         regularization,
-        leaves
+        leaves,
+        tasks
       }
     });
 

@@ -54,14 +54,22 @@ async function generateDailyAnalytics(emp_id, date) {
     } else if (attendance.first_checkin && attendance.last_checkout) {
       att_type = 'Present';
 
-      worked_hrs =
-        (new Date(attendance.last_checkout) -
-          new Date(attendance.first_checkin)) / 3600000;
+      // worked_hrs =
+      //   (new Date(attendance.last_checkout) -
+      //     new Date(attendance.first_checkin)) / 3600000;
 
-      const officeStart = new Date(`${date}T09:30:00`);
-      new Date(attendance.first_checkin) <= officeStart
+      // const officeStart = new Date(`${date}T09:30:00`);
+      // new Date(attendance.first_checkin) <= officeStart
+      //   ? (on_time = 1)
+      //   : (late = 1);
+      worked_hrs = attendance.worked_hours;
+
+      const shiftStart = new Date(`${date} ${attendance.shift_start_time}`);
+
+      new Date(attendance.first_checkin) <= shiftStart
         ? (on_time = 1)
         : (late = 1);
+
     }
 
     // 5️⃣ Insert analytics
