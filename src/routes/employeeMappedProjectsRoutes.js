@@ -1,5 +1,4 @@
 const express = require ('express');
-//const { jwtAuth } = require ('../middleware/jwtAuth.js');
 const { createEmpMappedProj, listEmpMappedProj, getEmpMappedProj, 
 } = require ('../controllers/employeeMappedProjectsController.js');
 const { jwtAuth } = require ('../middleware/jwtAuth.js');
