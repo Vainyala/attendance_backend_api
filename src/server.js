@@ -25,6 +25,7 @@ const healthRoutes = require( './routes/healthRoutes.js');
 const regularizationRoutes = require( './routes/regularizationRoutes.js');
 const leavesRoutes = require( './routes/leavesRoutes.js');
 const syncRoutes = require( './routes/syncRoutes.js');
+const employeeMappedShiftsRoutes = require( './routes/employeeMappedShiftsRoutes.js');
 const employeeMappedProjectsRoutes = require( './routes/employeeMappedProjectsRoutes.js');
 const attendanceAnalyticsRoutes = require( './routes/attendanceAnalyticsRoutes.js');
 
@@ -52,6 +53,7 @@ app.use('/api/v1/leaves', leavesRoutes);
 //app.use('/api/v1/timesheet', timesheetRoutes);
 app.use('/api/v1/projects_site', projectSiteRoutes);
 app.use('/api/v1/emp_mapped_projects', employeeMappedProjectsRoutes);
+app.use('/api/v1/emp_mapped_shifts', employeeMappedShiftsRoutes);
 app.use('/api/v1/attendance_analytics', attendanceAnalyticsRoutes);
 
 //manual Sync icon click
