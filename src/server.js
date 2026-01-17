@@ -29,7 +29,7 @@ const syncRoutes = require( './routes/syncRoutes.js');
 const employeeMappedShiftsRoutes = require( './routes/employeeMappedShiftsRoutes.js');
 const employeeMappedProjectsRoutes = require( './routes/employeeMappedProjectsRoutes.js');
 const attendanceAnalyticsRoutes = require( './routes/attendanceAnalyticsRoutes.js');
-
+const usersRoutes = require('./routes/usersRoutes.js');
 
 const app = express();
 
@@ -43,6 +43,7 @@ app.use(requestContext);
 app.use(morgan('combined'));
 
 // Register Routes
+app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/organizations', organizationRoutes);
 app.use('/api/v1/projects', projectRoutes);
