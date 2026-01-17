@@ -42,6 +42,24 @@ async function getAttendanceByEmpId(emp_id) {
   return rows;
 }
 
+async function getAttendanceByProjectId(project_id) {
+  const [rows] = await mariadb.execute(
+    `
+    SELECT 
+      ea.*, 
+      epm.project_id
+    FROM employee_attendance ea
+    JOIN employee_mapped_projects epm
+      ON ea.emp_id = epm.emp_id
+    WHERE epm.project_id = ?
+    ORDER BY ea.att_timestamp DESC
+    `,
+    [project_id]
+  );
+
+  return rows;
+}
+
 
 async function getAttendanceById(att_id) {
   const [rows] = await mariadb.execute(
@@ -50,6 +68,7 @@ async function getAttendanceById(att_id) {
   );
   return rows[0] || null;
 }
+
 
 async function getAttendanceByDateRange(from_date, to_date) {
   const [rows] = await mariadb.execute(
@@ -94,5 +113,6 @@ module.exports = {
   getAttendanceByDateRange,
   getAttendanceByEmpId,
   getAttendanceById,
+  getAttendanceByProjectId,
   getAttendanceWithSiteById
 }

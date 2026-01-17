@@ -3,22 +3,26 @@ const { mariadb } = require('../config/mariadb.js');
 /**
  * Insert mapping
  */
-async function createEmpMappedProjModel(data) {
-  const { emp_id, project_id, mapping_status } = data;
 
-  if (!emp_id || !project_id) {
-    throw new Error('emp_id or project_id missing');
-  }
+async function createEmpMappedProjModel(project_id, members) {
+  const values = members.map(emp_id => [
+    emp_id,
+    project_id,
+    'active'
+  ]);
 
-  const [result] = await mariadb.execute(
+  const [result] = await mariadb.query(
     `
     INSERT INTO employee_mapped_projects
     (emp_id, project_id, mapping_status)
-    VALUES (?, ?, ?)`,
-    [emp_id, project_id, mapping_status]
+    VALUES ?
+    `,
+    [values]
   );
+
   return result;
 }
+
 
 /**
  * List all mappings
@@ -56,6 +60,7 @@ async function getEmpMappedProjModel(emp_id) {
 
   return rows;
 }
+
 
 
 module.exports = {

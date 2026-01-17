@@ -35,7 +35,7 @@ async function getProjectById(project_id) {
   return rows[0] || null;
 }
 
-async function getProjectWithSiteById(project_id) {
+async function getProjectByProjectId(project_id) {
   const [rows] = await mariadb.execute(
     `
     SELECT 
@@ -119,7 +119,7 @@ module.exports = {
   createProject,
   getProjects,
   getProjectById,
-  getProjectWithSiteById,
+  getProjectByProjectId,
   updateProjectPartially,
   updateProject,
   deleteProject

@@ -13,7 +13,7 @@ bcrypt.hash(password, 12).then(hash => {
 });
 
 
-//sir's
+//sir's method to get hashPassword
 
 /**
  
@@ -30,7 +30,8 @@ E:\attendance-backendv1\src\cli>
  */
 
 
-//vainyala
+//vainyala method to get hashPassword
+
 // Generate a Bcrypt hash quickly in Node REPL:
 /**
  * to generate hashpassword into cmd run this:

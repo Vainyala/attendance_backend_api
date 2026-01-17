@@ -1,11 +1,12 @@
 // src/controllers/authController.js
 const { verifyPassword } = require('../utils/password.js');
 const { ok, badRequest, unauthorized, serverError } = require('../utils/response.js');
-const { findUserByEmail, isActive } = require('../models/usersModel.js');
+const { findUserByEmail, isActive } = require('../models/authModel.js');
 const { signToken } = require('../middleware/jwtAuth.js');
 const { auditLog } = require('../audit/auditLogger.js');
 const { errorLog } = require('../audit/errorLogger.js');
-const { findActiveSession, createSession, deactivateSession } = require('../models/sessionModel.js');
+const { findActiveSession, createSession, deactivateSession } 
+= require('../models/sessionModel.js');
 const { randomUUID } = require('crypto');
 const jwt = require('jsonwebtoken');
 const { env } = require('../config/env.js');
@@ -15,6 +16,7 @@ const Actions = require('../audit/actions.js'); // centralized audit action cons
  * Login controller
  */
 async function login(req, res) {
+  console.log('body: ', req.body);
   const { email_id, password } = req.body || {};
   if (!email_id || !password) {
     return badRequest(res, 'email_id and password are required', 'VALIDATION');
@@ -22,15 +24,16 @@ async function login(req, res) {
 
   try {
     const user = await findUserByEmail(email_id);
+    console.log('user: ', user);
     if (!user || !isActive(user.emp_status)) {
       await auditLog({ action: Actions.LOGIN_FAILURE, actor: { email_id }, req });
-      return unauthorized(res, 'Invalid credentials');
+      return unauthorized(res, 'Invalid Email credentials');
     }
 
     const match = await verifyPassword(password, user.password);
     if (!match) {
       await auditLog({ action: Actions.LOGIN_FAILURE, actor: { email_id }, req });
-      return unauthorized(res, 'Invalid credentials');
+      return unauthorized(res, 'Invalid Password credentials');
     }
 
     // Prevent multiple logins
@@ -64,6 +67,7 @@ async function login(req, res) {
       user: { emp_id: user.emp_id, email_id: user.email_id }
     });
   } catch (err) {
+    console.log('error: ', err);
     await errorLog({ err, req, context: { email_id } });
     return serverError(res);
   }

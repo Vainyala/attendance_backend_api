@@ -8,40 +8,39 @@ const { formatProjects } = require('../utils/projectFormatter');
 /**
  * Create employee ↔ project mapping
  */
+
 const createEmpMappedProj = async (req, res) => {
   try {
-    console.log('body:', req.body);
-    const { emp_id, project_id, mapping_status = 'active' } = req.body;
+    let { project_id, members } = req.body;
 
-    // 🔴 VALIDATION
-    if (!emp_id || !project_id) {
+    // normalize members
+    if (Array.isArray(members) && typeof members[0] === 'object') {
+      members = members.map(m => m.emp_id);
+    }
+
+    if (!project_id || !Array.isArray(members) || members.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'emp_id and project_id are required'
+        message: 'project_id and members are required'
       });
     }
 
-    const result = await createEmpMappedProjModel({
-      emp_id,
+    const result = await createEmpMappedProjModel(
       project_id,
-      mapping_status
-    });
+      members
+    );
 
     return res.status(201).json({
       success: true,
-      message: 'Employee project mapped successfully',
-      data: {
-        emp_id,
-        project_id,
-        mapping_status, result
-      }
+      message: 'Employees mapped to project successfully',
+      inserted: result.affectedRows
     });
 
-  } catch (error) {
-    console.error('createEmpMappedProj error:', error);
-    res.status(500).json({
+  } catch (err) {
+    console.error('mapEmployeesToProject error:', err);
+    return res.status(500).json({
       success: false,
-      message: 'Failed to map project'
+      message: 'Failed to map employees'
     });
   }
 };

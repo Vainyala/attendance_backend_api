@@ -1,8 +1,7 @@
 const {
   createProject,
   getProjects,
-  // getProjectById,
-  getProjectWithSiteById,
+  getProjectByProjectId,
   updateProject,
   updateProjectPartially,
   deleteProject
@@ -118,23 +117,11 @@ Authorization: Bearer {{access_token}}
 
 */
 
-// export async function getProj(req, res) {
-//   const { project_id } = req.params;
-//   try {
-//     const project = await getProjectById(project_id);
-//     if (!project) return notFound(res, 'Project not found');
-//     return ok(res, project);
-//   } catch (err) {
-//     await errorLog({ err, req, context: { project_id } });
-//     return serverError(res);
-//   }
-// }
-
 async function getProj(req, res) {
   const { project_id } = req.params;
 
   try {
-    const row = await getProjectWithSiteById(project_id);
+    const row = await getProjectByProjectId(project_id);
 
     if (!row) {
       return res.status(404).json({
@@ -175,7 +162,8 @@ async function updateProj(req, res) {
   const { project_id } = req.params;
   try {
     await updateProject(project_id, req.body);
-    await auditLog({ action: 'project_update', actor: { org_short_name: req.user?.org_short_name }, req, meta: { project_id } });
+    await auditLog({ action: 'project_update', actor: {
+       org_short_name: req.user?.org_short_name }, req, meta: { project_id } });
     return ok(res, { message: 'Project updated successfully' });
   } catch (err) {
     await errorLog({ err, req, context: { project_id } });

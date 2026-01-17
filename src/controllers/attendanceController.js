@@ -1,7 +1,7 @@
 const {
   createAttendance, getAttendance, //getAttendanceById,
   getAttendanceWithSiteById,
-  getAttendanceByEmpId, getAttendanceByDateRange
+  getAttendanceByEmpId, getAttendanceByProjectId, getAttendanceByDateRange
 } = require('../models/attendanceModel.js');
 const { ok, badRequest, notFound, serverError } = require('../utils/response.js');
 const { auditLog } = require('../audit/auditLogger.js');
@@ -140,6 +140,27 @@ console.log("Attendance data called: ", req.params);
   }
 }
 
+// get attendance by project_id
+async function getAttByProjectId(req, res) {
+  console.log("Attendance data called: ", req.params);
+    const { project_id } = req.params;
+  
+    try {
+      const pro = await getAttendanceByProjectId(project_id);
+  
+      if (!pro || pro.length === 0) {
+        return notFound(res, 'Employee attendance not found');
+      }
+  
+      return ok(res, pro);
+  
+    } catch (err) {
+      console.log('error:', err);
+      await errorLog({ err, req, context: { project_id } });
+      return serverError(res);
+    }
+}
+
 /*
 GET {{base_url}}/api/v1/attendance/EMP001
 Authorization: Bearer {{access_token}}
@@ -192,5 +213,6 @@ module.exports = {
   createAtt,
   listAtt,
   getAtt,
-  getAttByEmpId
+  getAttByEmpId,
+  getAttByProjectId
 }
