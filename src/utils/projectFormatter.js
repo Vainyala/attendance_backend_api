@@ -9,7 +9,10 @@ function formatProjects(rows = []) {
       project_site_lat: row.project_site_lat,
       project_site_long: row.project_site_long
     } : null,
-
+    est_start_date: row.est_start_date,
+    est_end_date: row.est_end_date,
+    actual_start_date: row.actual_start_date,
+    actual_end_date: row.actual_end_date,
     client_name: row.client_name,
     client_location: row.client_location,
     client_contact: row.client_contact,

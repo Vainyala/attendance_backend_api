@@ -33,14 +33,26 @@ async function createProj(req, res) {
   try {
     await connection.beginTransaction();
 
+    // const {
+    //   org_short_name, project_name, project_site,
+    //   client_name, client_location,
+    //   client_contact, project_site_lat,
+    //   project_site_long, mng_name, mng_email,
+    //   mng_contact, project_description,
+    //   project_techstack, project_assigned_date
+    // } = req.body;
+
+
+    //with est_dated
+
     const {
-      org_short_name, project_name, project_site,
-      client_name, client_location,
-      client_contact, project_site_lat,
-      project_site_long, mng_name, mng_email,
-      mng_contact, project_description,
-      project_techstack, project_assigned_date
-    } = req.body;
+  org_short_name, project_name, project_site,
+  client_name, client_location, client_contact,
+  mng_name, mng_email, mng_contact,
+  project_description, project_techstack, project_assigned_date,
+  est_start_date, est_end_date,
+  actual_start_date, actual_end_date
+} = req.body;
 
     if (!project_name) {
       await connection.rollback();
@@ -58,13 +70,23 @@ async function createProj(req, res) {
       connection // 👈 IMPORTANT
     );
 
+    // await createProject(connection, {
+    //   project_id, org_short_name, project_name,
+    //   project_site, client_name, client_location,
+    //   client_contact, project_site_lat, project_site_long,
+    //   mng_name, mng_email, mng_contact,
+    //   project_description, project_techstack, project_assigned_date
+    // });
+
+//with est_date
     await createProject(connection, {
-      project_id, org_short_name, project_name,
-      project_site, client_name, client_location,
-      client_contact, project_site_lat, project_site_long,
-      mng_name, mng_email, mng_contact,
-      project_description, project_techstack, project_assigned_date
-    });
+  project_id, org_short_name, project_name,
+  project_site, client_name, client_location,
+  client_contact, mng_name, mng_email, mng_contact,
+  project_description, project_techstack, project_assigned_date,
+  est_start_date, est_end_date, actual_start_date, actual_end_date
+});
+
 
     await auditLog({
       action: 'project_create', actor: {
